@@ -13,6 +13,10 @@
   "dependencies": {
     "@js-temporal/polyfill": "^0.5.1",
     "@tajetaje/romm-api": "latest",
-    "@webui-dev/bun-webui": "^2.5.2"
+    "electrobun": "^0.0.18",
+    "webview-bun": "^2.4.0"
+  },
+  "scripts": {
+    "start": "bun src/index.ts"
   }
 }
