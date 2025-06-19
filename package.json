@@ -4,12 +4,15 @@
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/node": "^24.0.3"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
+    "@js-temporal/polyfill": "^0.5.1",
+    "@tajetaje/romm-api": "latest",
     "@webui-dev/bun-webui": "^2.5.2"
   }
 }

@@ -105,3 +105,35 @@ export class RetroArchPaths {
     return new RetroArchPaths(share, config);
   }
 }
+
+export class CorePaths {
+  constructor(
+    protected readonly paths: RetroArchPaths,
+    public readonly coreUnderscoreName: string,
+    public readonly coreName: string
+  ) {}
+
+  get info(): string {
+    return join(this.paths.info, `${this.coreUnderscoreName}.info`);
+  }
+
+  get core(): string {
+    return join(this.paths.cores, `${this.coreUnderscoreName}.so`);
+  }
+
+  get config(): string {
+    return join(this.paths.config, this.coreName);
+  }
+
+  get saves(): string {
+    return join(this.paths.saves, this.coreName);
+  }
+
+  get states(): string {
+    return join(this.paths.states, this.coreName);
+  }
+
+  get system(): string {
+    return join(this.paths.system, this.coreName);
+  }
+}
