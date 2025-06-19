@@ -7,5 +7,5 @@
   },
   "prettier.embeddedLanguageFormatting": "auto",
   "editor.formatOnSave": true,
-  "cSpell.words": ["retroarch", "romm"]
+  "cSpell.words": ["libretro", "retroarch", "romm"]
 }

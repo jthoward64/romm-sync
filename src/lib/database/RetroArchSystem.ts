@@ -1,10 +1,7 @@
 import { db } from "./db";
 
 export class DbRetroArchSystem {
-  public static schema = `CREATE TABLE IF NOT EXISTS retroarch_system (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  system_id TEXT NOT NULL
-);`;
+  public static schema = ``;
 
   constructor(public id: number, public systemId: string) {}
 

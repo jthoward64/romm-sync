@@ -1,12 +1,7 @@
 import { db } from "./db";
 
 export class DbAuth {
-  public static schema = `CREATE TABLE IF NOT EXISTS auth (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    origin TEXT NOT NULL,
-    username TEXT NOT NULL,
-    password TEXT NOT NULL
-  );`;
+  public static schema = ``;
 
   constructor(
     public id: number,

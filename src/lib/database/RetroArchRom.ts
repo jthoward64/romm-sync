@@ -1,14 +1,8 @@
 import { db } from "./db";
+import { DbRetroArchCore, type CompleteCore } from "./RetroArchCore";
 
 export class DbRetroArchRom {
-  public static schema = `CREATE TABLE IF NOT EXISTS restroarch_rom (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  retroarch_path TEXT NOT NULL UNIQUE,
-  syncing INTEGER NOT NULL DEFAULT 0,
-  core_id INTEGER NOT NULL,
-  FOREIGN KEY (core_id) REFERENCES retroarch_core(id)
-  romm_rom_id INTEGER NOT NULL
-);`;
+  public static schema = ``;
 
   constructor(
     public id: number,
@@ -85,4 +79,21 @@ export class DbRetroArchRom {
   public async delete() {
     DbRetroArchRom.deleteQuery.run(this.id);
   }
+
+  public async getCore(): Promise<DbRetroArchCore | null> {
+    return DbRetroArchCore.get(this.coreId);
+  }
+
+  public async withCore(): Promise<CompleteRom | null> {
+    const core = await this.getCore();
+    if (!core) return null;
+    return {
+      ...this,
+      core: core as CompleteCore,
+    };
+  }
+}
+
+interface CompleteRom extends DbRetroArchRom {
+  core: CompleteCore;
 }

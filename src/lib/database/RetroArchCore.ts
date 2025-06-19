@@ -5,13 +5,7 @@ import { db } from "./db";
 import { DbRetroArchSystem } from "./RetroArchSystem";
 
 export class DbRetroArchCore {
-  public static schema = `CREATE TABLE IF NOT EXISTS retroarch_core (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  file_name TEXT NOT NULL UNIQUE,
-  downloaded INTEGER NOT NULL,
-  retroarch_system_id INTEGER NOT NULL,
-  FOREIGN KEY (retroarch_system_id) REFERENCES retroarch_system(id)
-);`;
+  public static schema = ``;
 
   constructor(
     public id: number,
@@ -127,4 +121,21 @@ export class DbRetroArchCore {
   public static async delete(id: number): Promise<void> {
     this.deleteQuery.run(id);
   }
+
+  public async getSystem(): Promise<DbRetroArchSystem | null> {
+    return DbRetroArchSystem.get(this.retroarchSystemId);
+  }
+
+  public async withSystem(): Promise<CompleteCore | null> {
+    const system = await this.getSystem();
+    if (!system) return null;
+    return {
+      ...this,
+      system: system,
+    };
+  }
+}
+
+export interface CompleteCore extends DbRetroArchCore {
+  system: DbRetroArchSystem;
 }
