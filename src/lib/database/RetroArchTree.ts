@@ -28,32 +28,37 @@ export async function getAllRoms() {
       arr[0] !== null && arr[1] !== null && arr[2] !== null
   );
 
-  const systemsMap = new Map<string, RetroArchTreeSystem>();
+  const systems: RetroArchTreeSystem[] = [];
 
   for (const [rom, core, system] of romsAndCores) {
-    if (!systemsMap.has(system.systemId)) {
-      systemsMap.set(system.systemId, {
+    let existingSystem = systems.find((s) => s.systemId === system.systemId);
+    if (!existingSystem) {
+      existingSystem = {
         ...system,
         cores: [],
-      });
+      };
+      systems.push(existingSystem);
     }
-    const treeSystem = systemsMap.get(system.systemId)!;
-
-    if (!treeSystem.cores.some((c) => c.id === core.id)) {
-      treeSystem.cores.push({
+    let existingCore = existingSystem.cores.find(
+      (c) => c.fileName === core.fileName
+    );
+    if (!existingCore) {
+      existingCore = {
         ...core,
         roms: [],
-      });
+      };
+      existingSystem.cores.push(existingCore);
     }
-    const treeCore = treeSystem.cores.find((c) => c.id === core.id)!;
-
-    treeCore.roms.push(rom);
+    existingCore.roms.push(rom);
   }
 
-  const systems = Array.from(systemsMap.values());
   systems.sort((a, b) => a.systemId.localeCompare(b.systemId));
   for (const system of systems) {
     system.cores.sort((a, b) => a.fileName.localeCompare(b.fileName));
+    for (const core of system.cores) {
+      core.roms.sort((a, b) => a.retroarchPath.localeCompare(b.retroarchPath));
+    }
   }
+
   return systems;
 }

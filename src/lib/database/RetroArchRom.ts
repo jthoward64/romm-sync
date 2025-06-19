@@ -13,20 +13,20 @@ export class DbRetroArchRom {
   ) {}
 
   private static insertQuery = db.prepare(
-    `INSERT INTO restroarch_rom (retroarch_path, syncing, core_id, romm_rom_id)
+    `INSERT INTO retroarch_rom (retroarch_path, syncing, core_id, romm_rom_id)
      VALUES (?, ?, ?, ?);`
   );
   public static insert(
-    retroarchPath: string,
     syncing: boolean,
+    rommRomId: number,
     coreId: number,
-    rommRomId: number
+    retroarchPath: string | null
   ) {
     this.insertQuery.run(retroarchPath, syncing ? 1 : 0, coreId, rommRomId);
   }
 
   private static updateQuery = db.prepare(
-    `UPDATE restroarch_rom SET
+    `UPDATE retroarch_rom SET
      retroarch_path = ?,
      syncing = ?,
      core_id = ?,
@@ -44,7 +44,7 @@ export class DbRetroArchRom {
   }
 
   private static getQuery = db.prepare(
-    `SELECT * FROM restroarch_rom WHERE id = ?`
+    `SELECT * FROM retroarch_rom WHERE id = ?`
   );
   public static async get(id: number): Promise<DbRetroArchRom | null> {
     const row = this.getQuery.get(id) as any;
@@ -58,7 +58,7 @@ export class DbRetroArchRom {
     );
   }
 
-  private static allQuery = db.prepare(`SELECT * FROM restroarch_rom`);
+  private static allQuery = db.prepare(`SELECT * FROM retroarch_rom`);
   public static async all(): Promise<DbRetroArchRom[]> {
     const rows = this.allQuery.all() as any[];
     return rows.map(
@@ -74,7 +74,7 @@ export class DbRetroArchRom {
   }
 
   private static deleteQuery = db.prepare(
-    `DELETE FROM restroarch_rom WHERE id = ?`
+    `DELETE FROM retroarch_rom WHERE id = ?`
   );
   public async delete() {
     DbRetroArchRom.deleteQuery.run(this.id);

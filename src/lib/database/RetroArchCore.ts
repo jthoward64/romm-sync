@@ -71,23 +71,41 @@ export class DbRetroArchCore {
   }
 
   public static async getOrCreateFromInfo(info: LibRetroInfo) {
+    console.debug(`Checking for core ${info.infoFile.name} in database...`);
     const existing = await this.getByFileName(info.infoFile.name);
     if (existing) {
+      console.debug(`Core ${info.infoFile.name} already exists in database.`);
       return existing;
     }
+    console.debug(
+      `Core ${info.infoFile.name} not found in database. Creating...`
+    );
     const { systemId } = info;
     const paths = CorePaths.fromInfo(retroArchPaths, info);
+    if (!paths) {
+      console.debug(
+        `No core paths found for ${info.infoFile.name}. Skipping core creation.`
+      );
+      return null;
+    }
     const exists = await stat(paths.core)
       .then(() => true)
       .catch(() => false);
     if (!systemId) {
-      console.warn(
-        `Core ${info.infoFile.name} does not have a system ID, skipping insertion.`
+      console.debug(
+        `No system ID found for ${info.infoFile.name}. Skipping core creation.`
       );
       return null;
+    } else {
+      console.debug(
+        `Found system ID ${systemId} for core ${info.infoFile.name}.`
+      );
     }
     let system = await DbRetroArchSystem.getBySystemId(systemId);
     if (!system) {
+      console.debug(
+        `System ID ${systemId} not found in database. Inserting new system.`
+      );
       await DbRetroArchSystem.insert(systemId);
       system = await DbRetroArchSystem.getBySystemId(systemId);
     }
@@ -98,6 +116,9 @@ export class DbRetroArchCore {
       return null;
     }
     this.insert(info.infoFile.name, exists, system.id);
+    console.debug(
+      `Inserted core ${info.infoFile.name} with system ID ${system.id} and downloaded status ${exists}.`
+    );
     return this.getByFileName(info.infoFile.name);
   }
 
