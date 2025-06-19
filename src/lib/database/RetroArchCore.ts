@@ -2,9 +2,9 @@ import { stat } from "node:fs/promises";
 import type { LibRetroInfo } from "../retroarch/libretro-info/LibretroInfo";
 import { CorePaths, retroArchPaths } from "../retroarch/paths";
 import { db } from "./db";
-import { RetroArchSystem } from "./RetroArchSystem";
+import { DbRetroArchSystem } from "./RetroArchSystem";
 
-export class RetroArchCore {
+export class DbRetroArchCore {
   public static schema = `CREATE TABLE IF NOT EXISTS retroarch_core (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   file_name TEXT NOT NULL UNIQUE,
@@ -38,7 +38,7 @@ export class RetroArchCore {
      WHERE id = ?;`
   );
   public update(): void {
-    RetroArchCore.updateQuery.run(
+    DbRetroArchCore.updateQuery.run(
       this.fileName,
       this.downloaded ? 1 : 0,
       this.retroarchSystemId,
@@ -49,10 +49,10 @@ export class RetroArchCore {
   private static getQuery = db.prepare(
     `SELECT * FROM retroarch_core WHERE id = ?`
   );
-  public static async get(id: number): Promise<RetroArchCore | null> {
+  public static async get(id: number): Promise<DbRetroArchCore | null> {
     const row = this.getQuery.get(id) as any;
     if (!row) return null;
-    return new RetroArchCore(
+    return new DbRetroArchCore(
       row.id,
       row.file_name,
       Boolean(row.downloaded),
@@ -65,10 +65,10 @@ export class RetroArchCore {
   );
   private static async getByFileName(
     fileName: string
-  ): Promise<RetroArchCore | null> {
+  ): Promise<DbRetroArchCore | null> {
     const row = this.fileNameQuery.get(fileName) as any;
     if (!row) return null;
-    return new RetroArchCore(
+    return new DbRetroArchCore(
       row.id,
       row.file_name,
       Boolean(row.downloaded),
@@ -92,10 +92,10 @@ export class RetroArchCore {
       );
       return null;
     }
-    let system = await RetroArchSystem.getBySystemId(systemId);
+    let system = await DbRetroArchSystem.getBySystemId(systemId);
     if (!system) {
-      await RetroArchSystem.insert(systemId);
-      system = await RetroArchSystem.getBySystemId(systemId);
+      await DbRetroArchSystem.insert(systemId);
+      system = await DbRetroArchSystem.getBySystemId(systemId);
     }
     if (!system) {
       console.error(
@@ -108,11 +108,11 @@ export class RetroArchCore {
   }
 
   private static allQuery = db.prepare(`SELECT * FROM retroarch_core`);
-  public static async all(): Promise<RetroArchCore[]> {
+  public static async all(): Promise<DbRetroArchCore[]> {
     const rows = this.allQuery.all() as any[];
     return rows.map(
       (row) =>
-        new RetroArchCore(
+        new DbRetroArchCore(
           row.id,
           row.file_name,
           Boolean(row.downloaded),

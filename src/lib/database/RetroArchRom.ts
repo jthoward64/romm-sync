@@ -1,6 +1,6 @@
 import { db } from "./db";
 
-export class RetroArchRom {
+export class DbRetroArchRom {
   public static schema = `CREATE TABLE IF NOT EXISTS restroarch_rom (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   retroarch_path TEXT NOT NULL UNIQUE,
@@ -40,7 +40,7 @@ export class RetroArchRom {
      WHERE id = ?;`
   );
   public update() {
-    RetroArchRom.updateQuery.run(
+    DbRetroArchRom.updateQuery.run(
       this.retroarchPath,
       this.syncing ? 1 : 0,
       this.coreId,
@@ -52,10 +52,10 @@ export class RetroArchRom {
   private static getQuery = db.prepare(
     `SELECT * FROM restroarch_rom WHERE id = ?`
   );
-  public static async get(id: number): Promise<RetroArchRom | null> {
+  public static async get(id: number): Promise<DbRetroArchRom | null> {
     const row = this.getQuery.get(id) as any;
     if (!row) return null;
-    return new RetroArchRom(
+    return new DbRetroArchRom(
       row.id,
       row.retroarch_path,
       Boolean(row.syncing),
@@ -65,11 +65,11 @@ export class RetroArchRom {
   }
 
   private static allQuery = db.prepare(`SELECT * FROM restroarch_rom`);
-  public static async all(): Promise<RetroArchRom[]> {
+  public static async all(): Promise<DbRetroArchRom[]> {
     const rows = this.allQuery.all() as any[];
     return rows.map(
       (row) =>
-        new RetroArchRom(
+        new DbRetroArchRom(
           row.id,
           row.retroarch_path,
           Boolean(row.syncing),
@@ -83,6 +83,6 @@ export class RetroArchRom {
     `DELETE FROM restroarch_rom WHERE id = ?`
   );
   public async delete() {
-    RetroArchRom.deleteQuery.run(this.id);
+    DbRetroArchRom.deleteQuery.run(this.id);
   }
 }

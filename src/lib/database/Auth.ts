@@ -1,48 +1,55 @@
 import { db } from "./db";
 
-export class Auth {
+export class DbAuth {
   public static schema = `CREATE TABLE IF NOT EXISTS auth (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    token TEXT NOT NULL,
-    expires_at INTEGER NOT NULL
+    origin TEXT NOT NULL,
+    username TEXT NOT NULL,
+    password TEXT NOT NULL
   );`;
 
   constructor(
     public id: number,
-    public token: string,
-    public expiresAt: number
+    public origin: string,
+    public username: string,
+    public password: string
   ) {}
 
-  private static insertQuery = db.prepare(
-    `INSERT INTO auth (token, expires_at)
-     VALUES (?, ?)`
-  );
-  public static insert(token: string, expiresAt: number): void {
-    this.insertQuery.run(token, expiresAt);
-  }
-
-  private static updateQuery = db.prepare(
-    `UPDATE auth SET token = ?, expires_at = ? WHERE id = ?`
-  );
-  public update(): void {
-    Auth.updateQuery.run(this.token, this.expiresAt, this.id);
-  }
-
-  private static getQuery = db.prepare(`SELECT * FROM auth WHERE id = ?`);
-  public static async get(id: number): Promise<Auth | null> {
-    const row = this.getQuery.get(id) as any;
+  private static getQuery = db.prepare(`SELECT * FROM auth LIMIT 1`);
+  public static async get(): Promise<DbAuth | null> {
+    const row = this.getQuery.get() as any;
     if (!row) return null;
-    return new Auth(row.id, row.token, row.expires_at);
+    return new DbAuth(row.id, row.origin, row.username, row.password);
   }
 
-  private static allQuery = db.prepare(`SELECT * FROM auth`);
-  public static async all(): Promise<Auth[]> {
-    const rows = this.allQuery.all() as any[];
-    return rows.map((row) => new Auth(row.id, row.token, row.expires_at));
+  private static insertQuery = db.prepare(
+    `INSERT INTO auth (origin, username, password) VALUES (?, ?, ?);`
+  );
+  public static insert(
+    origin: string,
+    username: string,
+    password: string
+  ): void {
+    this.insertQuery.run(origin, username, password);
   }
 
-  private static deleteQuery = db.prepare(`DELETE FROM auth WHERE id = ?`);
-  public static async delete(id: number): Promise<void> {
-    this.deleteQuery.run(id);
+  public static async initFromEnv() {
+    const username = Bun.env.USERNAME;
+    const password = Bun.env.PASSWORD;
+    const origin = Bun.env.ORIGIN;
+    if (!username || !password || !origin) {
+      throw new Error(
+        "Environment variables USERNAME, PASSWORD, and ORIGIN must be set."
+      );
+    }
+    // Check if auth already exists
+    const existingAuth = await DbAuth.get();
+    if (existingAuth) {
+      console.log("Auth already exists, skipping initialization.");
+      return;
+    }
+    // Insert new auth
+    DbAuth.insert(origin, username, password);
+    console.log("Auth initialized with provided environment variables.");
   }
 }

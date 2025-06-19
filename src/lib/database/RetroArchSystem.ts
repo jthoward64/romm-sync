@@ -1,6 +1,6 @@
 import { db } from "./db";
 
-export class RetroArchSystem {
+export class DbRetroArchSystem {
   public static schema = `CREATE TABLE IF NOT EXISTS retroarch_system (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   system_id TEXT NOT NULL
@@ -27,17 +27,17 @@ export class RetroArchSystem {
     if (!this.id) {
       throw new Error("Cannot update a record without an ID.");
     }
-    RetroArchSystem.updateQuery.run(this.systemId, this.id);
+    DbRetroArchSystem.updateQuery.run(this.systemId, this.id);
   }
 
   private static getQuery = db.prepare(
     `SELECT * FROM retroarch_system WHERE id = ?`
   );
 
-  public static async get(id: number): Promise<RetroArchSystem | null> {
+  public static async get(id: number): Promise<DbRetroArchSystem | null> {
     const row = this.getQuery.get(id) as any;
     if (!row) return null;
-    return new RetroArchSystem(row.id, row.system_id);
+    return new DbRetroArchSystem(row.id, row.system_id);
   }
 
   private static systemIdQuery = db.prepare(
@@ -45,17 +45,17 @@ export class RetroArchSystem {
   );
   public static async getBySystemId(
     systemId: string
-  ): Promise<RetroArchSystem | null> {
+  ): Promise<DbRetroArchSystem | null> {
     const row = this.systemIdQuery.get(systemId) as any;
     if (!row) return null;
-    return new RetroArchSystem(row.id, row.system_id);
+    return new DbRetroArchSystem(row.id, row.system_id);
   }
 
   private static allQuery = db.prepare(`SELECT * FROM retroarch_system`);
 
-  public static async all(): Promise<RetroArchSystem[]> {
+  public static async all(): Promise<DbRetroArchSystem[]> {
     const rows = this.allQuery.all() as any[];
-    return rows.map((row) => new RetroArchSystem(row.id, row.system_id));
+    return rows.map((row) => new DbRetroArchSystem(row.id, row.system_id));
   }
 
   private static deleteQuery = db.prepare(
