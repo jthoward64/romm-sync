@@ -114,11 +114,12 @@ export class CorePaths {
     public readonly coreName: string
   ) {}
 
-  static fromInfo(paths: RetroArchPaths, coreInfo: LibRetroInfo) {
+  static fromInfo(
+    paths: RetroArchPaths,
+    coreInfo: LibRetroInfo
+  ): CorePaths | null {
     if (!coreInfo.coreName) {
-      throw new Error(
-        `Core name not found in info file: ${coreInfo.infoFile.name}`
-      );
+      return null;
     }
     return new CorePaths(paths, coreInfo.infoFile.name, coreInfo.coreName);
   }

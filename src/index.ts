@@ -1,8 +1,9 @@
-import { WebUI } from "@webui-dev/bun-webui";
+import { Webview } from "webview-bun";
 import { homePage } from "./ui/home";
 
 await import("./lib/init");
 
-const webui = new WebUI();
-await webui.show(await homePage());
-await WebUI.wait();
+const webview = new Webview();
+
+webview.setHTML(await homePage());
+webview.run();
