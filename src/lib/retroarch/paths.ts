@@ -2,12 +2,14 @@ import { $ } from "bun";
 import { stat } from "node:fs/promises";
 import { join } from "node:path";
 
-export async function getLibRetroShare(): Promise<string | null> {
+async function getLibRetroShare(): Promise<string | null> {
   // "${flatpak info --show-location org.libretro.RetroArch}/share/libretro/" or "/usr/share/libretro/"
   try {
-    const output = await $`flatpak info --show-location org.libretro.RetroArch`.text().then((path) => path.trim());
+    const output = await $`flatpak info --show-location org.libretro.RetroArch`
+      .text()
+      .then((path) => path.trim());
     if (output) {
-      return join(output, 'files/share/libretro/');
+      return join(output, "files", "share", "libretro/");
     }
   } catch (error) {
     console.debug("Flatpak not found, falling back to system paths.");
@@ -20,5 +22,86 @@ export async function getLibRetroShare(): Promise<string | null> {
   } catch (error) {
     console.debug("System path /usr/share/libretro/ not found.");
   }
-  return null
+  return null;
+}
+
+async function getRetroArchConfig(): Promise<string | null> {
+  // ~/.var/app/org.libretro.RetroArch/config/retroarch/ or ~/.config/retroarch/
+  const flatpakConfigPath = join(
+    process.env.HOME || "",
+    ".var",
+    "app",
+    "org.libretro.RetroArch",
+    "config",
+    "retroarch"
+  );
+  const systemConfigPath = join(process.env.HOME || "", ".config", "retroarch");
+  try {
+    const flatpakStat = await stat(flatpakConfigPath);
+    if (flatpakStat.isDirectory()) {
+      return flatpakConfigPath;
+    }
+  } catch (error) {
+    console.debug(
+      "Flatpak config path not found, falling back to system config path."
+    );
+  }
+
+  try {
+    const systemStat = await stat(systemConfigPath);
+    if (systemStat.isDirectory()) {
+      return systemConfigPath;
+    }
+  } catch (error) {
+    console.debug("System config path not found.");
+  }
+
+  return null;
+}
+
+export class RetroArchPaths {
+  constructor(public readonly share: string, public readonly data: string) {}
+
+  get info(): string {
+    return join(this.share, "info");
+  }
+
+  get thumbnails(): string {
+    return join(this.data, "thumbnails");
+  }
+  get cores(): string {
+    return join(this.data, "cores");
+  }
+  get playlists(): string {
+    return join(this.data, "playlists");
+  }
+  get config(): string {
+    return join(this.data, "config");
+  }
+  get saves(): string {
+    return join(this.data, "saves");
+  }
+  get states(): string {
+    return join(this.data, "states");
+  }
+  get system(): string {
+    return join(this.data, "system");
+  }
+  get downloads(): string {
+    return join(this.data, "downloads");
+  }
+
+  static async getPaths(): Promise<RetroArchPaths> {
+    const share = await getLibRetroShare();
+    if (!share) {
+      throw new Error("Could not find libretro share directory.");
+    }
+
+    const config = await getRetroArchConfig();
+    if (!config) {
+      throw new Error("Could not find RetroArch config directory.");
+    }
+
+    return new RetroArchPaths(share, config);
+  }
 }

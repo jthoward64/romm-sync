@@ -1,20 +1,10 @@
 import { WebUI } from "@webui-dev/bun-webui";
-import { join } from "node:path";
 import { LibRetroInfo } from "../lib/retroarch/libretro-info/LibretroInfo";
-import { getLibRetroShare } from "../lib/retroarch/paths";
+import { RetroArchPaths } from "../lib/retroarch/paths";
 
-const libRetroShare = await getLibRetroShare();
+const paths = await RetroArchPaths.getPaths();
 
-if (libRetroShare) {
-  console.log(`Libretro share path: ${libRetroShare}`);
-} else {
-  console.error("Libretro share path not found.");
-  process.exit(1);
-}
-
-const infoPath = join(libRetroShare, "info");
-
-const libretroInfos = await LibRetroInfo.loadAll(infoPath);
+const libretroInfos = await LibRetroInfo.loadAll(paths.info);
 
 console.log(`Loaded ${libretroInfos.length} LibRetroInfo objects.`);
 
