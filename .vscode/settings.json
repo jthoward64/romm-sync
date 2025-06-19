@@ -1,5 +1,11 @@
 {
-  "emmet.includeLanguages": { "javascript": "javascriptreact", "vue-html": "html", "razor": "html", "plaintext": "jade" },
+  "emmet.includeLanguages": {
+    "javascript": "javascriptreact",
+    "vue-html": "html",
+    "razor": "html",
+    "plaintext": "jade"
+  },
   "prettier.embeddedLanguageFormatting": "auto",
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "cSpell.words": ["retroarch", "romm"]
 }

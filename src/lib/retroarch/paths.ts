@@ -1,6 +1,7 @@
 import { $ } from "bun";
 import { stat } from "node:fs/promises";
 import { join } from "node:path";
+import type { LibRetroInfo } from "./libretro-info/LibretroInfo";
 
 async function getLibRetroShare(): Promise<string | null> {
   // "${flatpak info --show-location org.libretro.RetroArch}/share/libretro/" or "/usr/share/libretro/"
@@ -113,6 +114,15 @@ export class CorePaths {
     public readonly coreName: string
   ) {}
 
+  static fromInfo(paths: RetroArchPaths, coreInfo: LibRetroInfo) {
+    if (!coreInfo.coreName) {
+      throw new Error(
+        `Core name not found in info file: ${coreInfo.infoFile.name}`
+      );
+    }
+    return new CorePaths(paths, coreInfo.infoFile.name, coreInfo.coreName);
+  }
+
   get info(): string {
     return join(this.paths.info, `${this.coreUnderscoreName}.info`);
   }
@@ -137,3 +147,5 @@ export class CorePaths {
     return join(this.paths.system, this.coreName);
   }
 }
+
+export const retroArchPaths = await RetroArchPaths.getPaths();
