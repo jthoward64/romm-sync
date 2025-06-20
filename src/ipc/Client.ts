@@ -1,5 +1,5 @@
-import { ipcActions } from "./actions";
-import type { IpcAction, IpcArgument, IpcResponse, IpcResult } from "./Server";
+import { ipcActions } from "./actions.ts";
+import type { IpcAction, IpcArgument, IpcResponse, IpcResult } from "./Server.ts";
 
 export type IpcClientType = {
   [Action in IpcAction]: IpcArgument<Action> extends undefined

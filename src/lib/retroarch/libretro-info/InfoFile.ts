@@ -1,12 +1,15 @@
 export class InfoFile {
-  constructor(public elements: InfoFileElement[], public name: string) {}
+  constructor(
+    public elements: InfoFileElement[],
+    public name: string,
+  ) {}
 }
 
 export class InfoFileElement {
   constructor(
     public name: string,
     public value: string | number,
-    public precedingComment?: string
+    public precedingComment?: string,
   ) {}
 }
 
@@ -40,7 +43,7 @@ export function parseInfoFile(content: string, fileName: string): InfoFile {
     }
 
     let value: string | number = rawValue;
-    if (!isNaN(Number(rawValue))) {
+    if (!Number.isNaN(Number(rawValue))) {
       value = Number(rawValue);
     }
     if (typeof value === "string") {

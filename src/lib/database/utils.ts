@@ -1,9 +1,10 @@
-import type { PlatformSchema } from "@tajetaje/romm-api";
 import { stat } from "node:fs/promises";
-import type { LibRetroInfo } from "../retroarch/libretro-info/LibretroInfo";
-import { rommSystemForRetroarchInfo } from "../retroarch/mappings";
-import { CorePaths, retroArchPaths } from "../retroarch/paths";
-import { db } from "./db";
+import type { PlatformSchema } from "@tajetaje/romm-api";
+import type { LibRetroInfo } from "../retroarch/libretro-info/LibretroInfo.ts";
+import { rommSystemForRetroarchInfo } from "../retroarch/mappings.ts";
+import { CorePaths, retroArchPaths } from "../retroarch/paths.ts";
+import { db } from "./db.ts";
+import { retroarchCore, retroarchSystemSchema } from "./schema.ts";
 
 /**
  * Retrieves a core from the database based on the provided LibRetroInfo and platforms.
@@ -14,15 +15,15 @@ import { db } from "./db";
  */
 export async function getOrCreateCoreFromInfo(
   info: LibRetroInfo,
-  platforms: PlatformSchema[]
+  platforms: PlatformSchema[],
 ) {
-  const existing = await db.retroarchCore.findUnique({
-    where: { fileName: info.infoFile.name },
+  const existing = await db.query.retroarchCore.findFirst({
+    where: (table, { eq }) => eq(table.fileName, info.infoFile.name),
   });
   if (existing) {
     return existing;
   }
-  const { systemId, systemName } = info;
+  const { systemId } = info;
   const paths = CorePaths.fromInfo(retroArchPaths, info);
   if (!paths) {
     return null;
@@ -43,8 +44,8 @@ export async function getOrCreateCoreFromInfo(
     return null;
   }
 
-  let system = await db.retroarchSystem.findUnique({
-    where: { systemId },
+  let system = await db.query.retroarchSystemSchema.findFirst({
+    where: (table, { eq }) => eq(table.systemId, systemId),
   });
 
   if (!system) {
@@ -53,38 +54,34 @@ export async function getOrCreateCoreFromInfo(
     if (!rommSystem) {
       if (rommSystem === undefined) {
         console.error(
-          `No matching ROMM system found for ${systemId}. Cannot parse system.`
+          `No matching ROMM system found for ${systemId}. Cannot parse system.`,
         );
       }
       return null;
     }
 
-    system = await db.retroarchSystem.create({
-      data: {
+    system = await db
+      .insert(retroarchSystemSchema)
+      .values({
         systemId,
         rommSystemId: rommSystem.id === -1 ? null : rommSystem.id,
         rommSlug: rommSystem.slug,
-      },
-    });
+      })
+      .returning()
+      .then((rows) => rows[0]);
   }
 
   if (!system) {
     console.error(
-      `Failed to retrieve system ID for ${systemId} after insertion.`
+      `Failed to retrieve system ID for ${systemId} after insertion.`,
     );
     return null;
   }
 
   // this.insert(info.infoFile.name, exists, system.id);
-  return db.retroarchCore.create({
-    data: {
-      fileName: info.infoFile.name,
-      downloaded: exists,
-      retroarchSystem: {
-        connect: {
-          systemId: system.systemId,
-        },
-      },
-    },
+  return db.insert(retroarchCore).values({
+    fileName: info.infoFile.name,
+    downloaded: exists,
+    retroarchSystemId: system.id,
   });
 }

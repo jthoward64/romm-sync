@@ -4,6 +4,7 @@
   "type": "module",
   "private": true,
   "devDependencies": {
+    "@biomejs/biome": "^2.0.2",
     "@types/bun": "^1.2.16",
     "@types/node": "^24.0.3",
     "drizzle-kit": "^0.31.1"

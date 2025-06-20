@@ -1,7 +1,7 @@
 import { Box, Button, TextField, Typography } from "@mui/material";
 import { useNotifications } from "@toolpad/core/useNotifications";
 import { useEffect, useState } from "react";
-import { IpcClient } from "../../../ipc/Client";
+import { IpcClient } from "../../../ipc/Client.ts";
 
 const SECRET_PASSWORD = "********";
 
@@ -29,8 +29,8 @@ export function Settings() {
       }
     }
 
-    fetchSettings();
-  }, []);
+    void fetchSettings();
+  }, [show]);
 
   return (
     <form
@@ -39,7 +39,7 @@ export function Settings() {
         console.log(
           JSON.stringify([
             ...new FormData(e.target as HTMLFormElement).entries(),
-          ])
+          ]),
         );
         const formData = new FormData(e.target as HTMLFormElement);
         const username = formData.get("username") as string;

@@ -1,5 +1,5 @@
 import type { PlatformSchema } from "@tajetaje/romm-api";
-import type { LibRetroInfo } from "./libretro-info/LibretroInfo";
+import type { LibRetroInfo } from "./libretro-info/LibretroInfo.ts";
 
 export function rommSystemForRetroarchInfo(
   info: LibRetroInfo,

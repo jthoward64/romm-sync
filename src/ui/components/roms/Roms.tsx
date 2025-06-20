@@ -2,9 +2,9 @@ import CircularProgress from "@mui/material/CircularProgress";
 import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
 import { useEffect, useState } from "react";
-import { IpcClient } from "../../../ipc/Client";
-import type { Rom } from "../../../lib/Rom";
-import { RomSettings } from "./RomSettings";
+import { IpcClient } from "../../../ipc/Client.ts";
+import type { Rom } from "../../../lib/Rom.ts";
+import { RomSettings } from "./RomSettings.tsx";
 
 export function Roms() {
   const [roms, setRoms] = useState<Rom[]>([]);
@@ -24,14 +24,14 @@ export function Roms() {
         setError(
           `Failed to load ROMs: ${
             err instanceof Error ? err.message : "Unknown error"
-          }`
+          }`,
         );
       } finally {
         setLoading(false);
       }
     }
 
-    fetchRoms();
+    void fetchRoms();
   }, []);
 
   if (loading) {
@@ -61,6 +61,7 @@ export function Roms() {
       </Typography>
       {roms.map((rom) => (
         <RomSettings
+          key={rom.rommRom.id}
           rom={rom}
           updateRom={(newRom) =>
             setRoms((roms) =>
@@ -72,8 +73,8 @@ export function Roms() {
                 (a, b) =>
                   (b.retroarchRom?.syncing ? 1 : 0) -
                     (a.retroarchRom?.syncing ? 1 : 0) ||
-                  (a.rommRom.name ?? "").localeCompare(b.rommRom.name ?? "")
-              )
+                  (a.rommRom.name ?? "").localeCompare(b.rommRom.name ?? ""),
+              ),
             )
           }
         />

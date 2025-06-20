@@ -1,25 +1,25 @@
+import { join } from "node:path";
 import { file, SHA1 } from "bun";
-import { join } from "path";
-import { retroArchPaths } from "../retroarch/paths";
-import type { Rom } from "../Rom";
-import { RommApiClient } from "../romm/RomM";
+import type { Rom } from "../Rom.ts";
+import { retroArchPaths } from "../retroarch/paths.ts";
+import { RommApiClient } from "../romm/RomM.ts";
 
 export async function doSync(rom: Rom) {
   if (rom.retroarchRom) {
     if (!rom.retroarchRom.rommFileId) {
       console.log(
-        `ROM ${rom.rommRom.slug} (${rom.rommRom.id}) is not set for syncing.`
+        `ROM ${rom.rommRom.slug} (${rom.rommRom.id}) is not set for syncing.`,
       );
       return;
     }
 
     const romFile = rom.rommRom.files.find(
-      (f) => f.id === rom.retroarchRom?.rommFileId
+      (f) => f.id === rom.retroarchRom?.rommFileId,
     );
 
     if (!romFile) {
       console.log(
-        `ROM file with ID ${rom.retroarchRom.rommFileId} not found for ROM ${rom.rommRom.slug} (${rom.rommRom.id}).`
+        `ROM file with ID ${rom.retroarchRom.rommFileId} not found for ROM ${rom.rommRom.slug} (${rom.rommRom.id}).`,
       );
       return;
     }
@@ -30,7 +30,7 @@ export async function doSync(rom: Rom) {
         {
           id: rom.rommRom.id,
           fileName: romFile.fileName,
-        }
+        },
       );
     const rommFile = await rommFileResponse.getBodyAsFile();
 
@@ -42,19 +42,19 @@ export async function doSync(rom: Rom) {
       const hash = SHA1.hash(targetFile);
       if (Buffer.from(hash.buffer).toString("hex") === romFile.sha1Hash) {
         console.log(
-          `ROM ${rom.rommRom.slug} (${rom.rommRom.id}) is already synced.`
+          `ROM ${rom.rommRom.slug} (${rom.rommRom.id}) is already synced.`,
         );
         return;
       } else {
         console.log(
-          `ROM ${rom.rommRom.slug} (${rom.rommRom.id}) has a different hash, re-syncing.`
+          `ROM ${rom.rommRom.slug} (${rom.rommRom.id}) has a different hash, re-syncing.`,
         );
       }
     }
     await targetFile.write(rommFile.data);
   } else {
     console.log(
-      `ROM ${rom.rommRom.slug} (${rom.rommRom.id}) does not have a RetroArch ROM entry, skipping sync.`
+      `ROM ${rom.rommRom.slug} (${rom.rommRom.id}) does not have a RetroArch ROM entry, skipping sync.`,
     );
   }
 }

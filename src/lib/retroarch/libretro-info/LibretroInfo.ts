@@ -1,6 +1,6 @@
-import { readFile, readdir } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { InfoFile, parseInfoFile } from "./InfoFile";
+import { type InfoFile, parseInfoFile } from "./InfoFile.ts";
 
 export class LibRetroInfo {
   public firmware: LibRetroFirmware[] | undefined;
@@ -46,9 +46,9 @@ export class LibRetroInfo {
 
   private parseInfoFile() {
     let firmwareCount = 0;
-    let firmwareDesc: string[] = [];
-    let firmwarePath: string[] = [];
-    let firmwareOpt: boolean[] = [];
+    const firmwareDesc: string[] = [];
+    const firmwarePath: string[] = [];
+    const firmwareOpt: boolean[] = [];
 
     for (const element of this.infoFile.elements) {
       switch (element.name) {
@@ -160,11 +160,11 @@ export class LibRetroInfo {
                 .replace("firmware", "")
                 .replace("_desc", "")
                 .replace("_path", "")
-                .replace("_opt", "")
+                .replace("_opt", ""),
             );
-            if (isNaN(index) || index < 0 || index >= firmwareCount) {
+            if (Number.isNaN(index) || index < 0 || index >= firmwareCount) {
               throw new Error(
-                `Invalid firmware index in ${this.infoFile.name}: ${element.name}`
+                `Invalid firmware index in ${this.infoFile.name}: ${element.name}`,
               );
             }
             if (element.name.endsWith("_desc")) {
@@ -189,21 +189,23 @@ export class LibRetroInfo {
         if (firmwareDesc[i] !== undefined && firmwarePath[i] !== undefined) {
           firmwareList.push(
             new LibRetroFirmware(
-              firmwarePath[i]!!,
+              // biome-ignore lint/style/noNonNullAssertion: Same index
+              firmwarePath[i]!,
               firmwareOpt[i] ?? false,
-              firmwareDesc[i]!!
-            )
+              // biome-ignore lint/style/noNonNullAssertion: Same index
+              firmwareDesc[i]!,
+            ),
           );
         } else {
           throw new Error(
-            `Incomplete firmware entry at index ${i} in ${this.infoFile.name}`
+            `Incomplete firmware entry at index ${i} in ${this.infoFile.name}`,
           );
         }
       }
       this.firmware = firmwareList;
     } else if (firmwareCount > 0) {
       throw new Error(
-        `Incomplete firmware information in ${this.infoFile.name}: expected ${firmwareCount} entries, found ${firmwareDesc.length} descs - ${firmwarePath.length} paths, ${firmwareOpt.length} options.`
+        `Incomplete firmware information in ${this.infoFile.name}: expected ${firmwareCount} entries, found ${firmwareDesc.length} descs - ${firmwarePath.length} paths, ${firmwareOpt.length} options.`,
       );
     }
   }
@@ -219,7 +221,7 @@ export class LibRetroInfo {
       const filePath = join(path, file);
       const content = await readFile(filePath, "utf-8");
       parsed.push(
-        new LibRetroInfo(parseInfoFile(content, file.replace(/\.info$/, "")))
+        new LibRetroInfo(parseInfoFile(content, file.replace(/\.info$/, ""))),
       );
     }
 
@@ -228,5 +230,9 @@ export class LibRetroInfo {
 }
 
 export class LibRetroFirmware {
-  constructor(public path: string, public opt: boolean, public desc: string) {}
+  constructor(
+    public path: string,
+    public opt: boolean,
+    public desc: string,
+  ) {}
 }

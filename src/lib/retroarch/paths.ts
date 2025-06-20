@@ -1,7 +1,7 @@
-import { $ } from "bun";
 import { stat } from "node:fs/promises";
 import { join } from "node:path";
-import type { LibRetroInfo } from "./libretro-info/LibretroInfo";
+import { $ } from "bun";
+import type { LibRetroInfo } from "./libretro-info/LibretroInfo.ts";
 
 async function getLibRetroShare(): Promise<string | null> {
   // "${flatpak info --show-location org.libretro.RetroArch}/share/libretro/" or "/usr/share/libretro/"
@@ -12,7 +12,7 @@ async function getLibRetroShare(): Promise<string | null> {
     if (output) {
       return join(output, "files", "share", "libretro/");
     }
-  } catch (error) {
+  } catch {
     console.debug("Flatpak not found, falling back to system paths.");
   }
   try {
@@ -20,7 +20,7 @@ async function getLibRetroShare(): Promise<string | null> {
     if (statResult.isDirectory()) {
       return "/usr/share/libretro/";
     }
-  } catch (error) {
+  } catch {
     console.debug("System path /usr/share/libretro/ not found.");
   }
   return null;
@@ -34,7 +34,7 @@ async function getRetroArchConfig(): Promise<string | null> {
     "app",
     "org.libretro.RetroArch",
     "config",
-    "retroarch"
+    "retroarch",
   );
   const systemConfigPath = join(process.env.HOME || "", ".config", "retroarch");
   try {
@@ -42,9 +42,9 @@ async function getRetroArchConfig(): Promise<string | null> {
     if (flatpakStat.isDirectory()) {
       return flatpakConfigPath;
     }
-  } catch (error) {
+  } catch {
     console.debug(
-      "Flatpak config path not found, falling back to system config path."
+      "Flatpak config path not found, falling back to system config path.",
     );
   }
 
@@ -53,7 +53,7 @@ async function getRetroArchConfig(): Promise<string | null> {
     if (systemStat.isDirectory()) {
       return systemConfigPath;
     }
-  } catch (error) {
+  } catch {
     console.debug("System config path not found.");
   }
 
@@ -61,7 +61,10 @@ async function getRetroArchConfig(): Promise<string | null> {
 }
 
 export class RetroArchPaths {
-  constructor(public readonly share: string, public readonly data: string) {}
+  constructor(
+    public readonly share: string,
+    public readonly data: string,
+  ) {}
 
   get info(): string {
     return join(this.share, "info");
@@ -111,12 +114,12 @@ export class CorePaths {
   constructor(
     protected readonly paths: RetroArchPaths,
     public readonly coreUnderscoreName: string,
-    public readonly coreName: string
+    public readonly coreName: string,
   ) {}
 
   static fromInfo(
     paths: RetroArchPaths,
-    coreInfo: LibRetroInfo
+    coreInfo: LibRetroInfo,
   ): CorePaths | null {
     if (!coreInfo.coreName) {
       return null;

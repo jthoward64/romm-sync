@@ -1,12 +1,14 @@
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
-import { db } from "./database/db";
-import { getOrCreateCoreFromInfo } from "./database/utils";
-import { LibRetroInfo } from "./retroarch/libretro-info/LibretroInfo";
-import { retroArchPaths } from "./retroarch/paths";
-import { RommApiClient } from "./romm/RomM";
+import { eq } from "drizzle-orm";
+import { db } from "./database/db.ts";
+import { retroarchRomSchema } from "./database/schema.ts";
+import { getOrCreateCoreFromInfo } from "./database/utils.ts";
+import { LibRetroInfo } from "./retroarch/libretro-info/LibretroInfo.ts";
+import { retroArchPaths } from "./retroarch/paths.ts";
+import { RommApiClient } from "./romm/RomM.ts";
 
-const dbAuth = await db.auth.findFirst();
+const dbAuth = await db.query.authSchema.findFirst();
 if (!dbAuth) {
   throw new Error("No authentication credentials found in the database.");
 }
@@ -28,19 +30,27 @@ if (!roms) {
 const downloadedRoms = await readdir(retroArchPaths.downloads);
 for (const rom of roms) {
   const match = downloadedRoms.find((downloadedFile) =>
-    rom.files.some((remoteFile) => remoteFile.fileName === downloadedFile)
+    rom.files.some((remoteFile) => remoteFile.fileName === downloadedFile),
   );
-
-  db.retroarchRom.upsert({
-    where: { rommRomId: rom.id },
-    create: {
+  const existingRom = await db
+    .select()
+    .from(retroarchRomSchema)
+    .where(eq(retroarchRomSchema.rommRomId, rom.id))
+    .limit(1);
+  if (existingRom.length > 0) {
+    await db
+      .update(retroarchRomSchema)
+      .set({
+        retroarchPath: match ? join(retroArchPaths.downloads, match) : null,
+        rommFileId:
+          rom.files.find((file) => file.fileName === match)?.id || null,
+      })
+      .where(eq(retroarchRomSchema.rommRomId, rom.id));
+  } else {
+    await db.insert(retroarchRomSchema).values({
       rommRomId: rom.id,
-      retroarchPath: (match && join(retroArchPaths.downloads, match)) || null,
+      retroarchPath: match ? join(retroArchPaths.downloads, match) : null,
       rommFileId: rom.files.find((file) => file.fileName === match)?.id || null,
-    },
-    update: {
-      retroarchPath: (match && join(retroArchPaths.downloads, match)) || null,
-      rommFileId: rom.files.find((file) => file.fileName === match)?.id || null,
-    },
-  });
+    });
+  }
 }

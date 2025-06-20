@@ -3,7 +3,7 @@ import { defineConfig } from "vite";
 import { viteSingleFile } from "vite-plugin-singlefile";
 
 export default defineConfig(({ command }) => ({
-  plugins: [react(), command == "build" && viteSingleFile()],
+  plugins: [react(), command === "build" && viteSingleFile()],
   root: "src/ui",
   build: {
     target: "esnext",

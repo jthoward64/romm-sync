@@ -5,8 +5,22 @@
     "razor": "html",
     "plaintext": "jade"
   },
-  "prettier.embeddedLanguageFormatting": "auto",
+  "editor.defaultFormatter": "biomejs.biome",
   "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports.biome": "explicit",
+    "source.fixAll.biome": "explicit",
+    "source.biome": "explicit",
+    "source.sortImports": "never",
+    "source.fixAll.eslint": "never",
+    "source.organizeImports": "never"
+  },
   "cSpell.words": ["libretro", "retroarch", "romm"],
-  "bun.runtime": "/var/home/tagho/.local/share/npm/bin/bun"
+  "bun.runtime": "/var/home/tagho/.local/share/npm/bin/bun",
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  }
 }

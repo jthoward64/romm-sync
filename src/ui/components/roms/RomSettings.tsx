@@ -11,8 +11,8 @@ import ListItem from "@mui/material/ListItem";
 import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
 import { useNotifications } from "@toolpad/core/useNotifications";
-import { IpcClient } from "../../../ipc/Client";
-import type { Rom } from "../../../lib/Rom";
+import { IpcClient } from "../../../ipc/Client.ts";
+import type { Rom } from "../../../lib/Rom.ts";
 
 export function RomSettings({
   rom,
@@ -52,7 +52,7 @@ export function RomSettings({
                 if (newRom.ok) {
                   console.log(
                     `Sync status updated for ROM: ${rom.rommRom.name}`,
-                    JSON.stringify(newRom.rom)
+                    JSON.stringify(newRom.rom),
                   );
                   rom.retroarchRom = newRom.rom;
                   updateRom(rom);
@@ -63,9 +63,9 @@ export function RomSettings({
                       severity: "error",
                       actionText: "Try Again",
                       onAction() {
-                        go();
+                        void go();
                       },
-                    }
+                    },
                   );
                 }
               }

@@ -1,27 +1,34 @@
 import { relations } from "drizzle-orm/relations";
-import { retroarchCore, retroarchRom, retroarchSystem } from "./schema";
+import {
+  retroarchCore,
+  retroarchRomSchema,
+  retroarchSystemSchema,
+} from "./schema.ts";
 
 export const retroarchCoreRelations = relations(
   retroarchCore,
   ({ one, many }) => ({
-    retroarchSystem: one(retroarchSystem, {
+    retroarchSystem: one(retroarchSystemSchema, {
       fields: [retroarchCore.retroarchSystemId],
-      references: [retroarchSystem.id],
+      references: [retroarchSystemSchema.id],
     }),
-    retroarchRoms: many(retroarchRom),
-  })
+    retroarchRoms: many(retroarchRomSchema),
+  }),
 );
 
 export const retroarchSystemRelations = relations(
-  retroarchSystem,
+  retroarchSystemSchema,
   ({ many }) => ({
     retroarchCores: many(retroarchCore),
-  })
+  }),
 );
 
-export const retroarchRomRelations = relations(retroarchRom, ({ one }) => ({
-  retroarchCore: one(retroarchCore, {
-    fields: [retroarchRom.targetCoreId],
-    references: [retroarchCore.id],
+export const retroarchRomRelations = relations(
+  retroarchRomSchema,
+  ({ one }) => ({
+    retroarchCore: one(retroarchCore, {
+      fields: [retroarchRomSchema.targetCoreId],
+      references: [retroarchCore.id],
+    }),
   }),
-}));
+);

@@ -1,9 +1,10 @@
-import { DbAuth } from "../lib/database/Auth";
-import { DbRetroArchRom } from "../lib/database/RetroArchRom";
-import { getAllRoms } from "../lib/interface";
-import type { Rom } from "../lib/Rom";
-import { syncJob } from "../lib/sync/sync";
-import type { ipcActions } from "./actions";
+import { eq } from "drizzle-orm";
+import { db } from "../lib/database/db.ts";
+import { authSchema, retroarchRomSchema } from "../lib/database/schema.ts";
+import { getAllRoms } from "../lib/interface.ts";
+import type { Rom } from "../lib/Rom.ts";
+import { syncJob } from "../lib/sync/sync.ts";
+import type { ipcActions } from "./actions.ts";
 
 export const IpcServer = {
   async getDbRoms(): Promise<{ roms: Rom[] }> {
@@ -13,29 +14,33 @@ export const IpcServer = {
   async setSync(arg: {
     id: number;
     enabled: boolean;
-  }): Promise<{ rom: DbRetroArchRom }> {
-    const rom = await DbRetroArchRom.getByRommRomId(arg.id);
+  }): Promise<{ rom: typeof retroarchRomSchema.$inferSelect }> {
+    // const rom = await DbRetroArchRom.getByRommRomId(arg.id);
+    const rom = await db.query.retroarchRom.findFirst({
+      where: (table, { eq }) => eq(table.rommRomId, arg.id),
+    });
     if (!rom) {
       console.log(`No ROM found with ID ${arg.id}. Creating a new entry.`);
-      DbRetroArchRom.insert(
-        arg.enabled,
-        arg.id,
-        null, // No retroarch path set yet
-        null,
-        null
-      );
+      await db.insert(retroarchRomSchema).values({
+        syncing: arg.enabled,
+        rommRomId: arg.id,
+      });
     } else {
       console.log(
-        `Updating ROM with ID ${arg.id} to set syncing to ${arg.enabled}.`
+        `Updating ROM with ID ${arg.id} to set syncing to ${arg.enabled}.`,
       );
-      rom.syncing = arg.enabled;
-      if (!arg.enabled) {
-        rom.rommFileId = null; // Clear the file ID if syncing is disabled
-        rom.retroarchPath = null; // Clear the retroarch path if syncing is disabled
-      }
-      rom.update();
+      await db
+        .update(retroarchRomSchema)
+        .set({
+          syncing: arg.enabled,
+          rommFileId: arg.enabled ? retroarchRomSchema.rommFileId : null,
+          retroarchPath: arg.enabled ? retroarchRomSchema.retroarchPath : null,
+        })
+        .where(eq(retroarchRomSchema.rommRomId, arg.id));
     }
-    const newRom = await DbRetroArchRom.getByRommRomId(arg.id);
+    const newRom = await db.query.retroarchRom.findFirst({
+      where: (table, { eq }) => eq(table.rommRomId, arg.id),
+    });
     if (!newRom) {
       throw new Error(`ROM with ID ${arg.id} not found after update.`);
     }
@@ -48,11 +53,8 @@ export const IpcServer = {
   async selectFile(arg: {
     romId: number;
     fileId: number | null;
-  }): Promise<{ rom: DbRetroArchRom }> {
+  }): Promise<{ rom: typeof retroarchRomSchema.$inferSelect }> {
     const rom = await DbRetroArchRom.getByRommRomId(arg.romId);
-    if (!rom) {
-      throw new Error(`ROM with ID ${arg.romId} not found.`);
-    }
     console.log(`Setting file ID ${arg.fileId} for ROM with ID ${arg.romId}.`);
     rom.rommFileId = arg.fileId;
 
@@ -66,13 +68,13 @@ export const IpcServer = {
   async setTargetCore(arg: {
     romId: number;
     coreId: number | null;
-  }): Promise<{ rom: DbRetroArchRom }> {
+  }): Promise<{ rom: typeof retroarchRomSchema.$inferSelect }> {
     const rom = await DbRetroArchRom.getByRommRomId(arg.romId);
     if (!rom) {
       throw new Error(`ROM with ID ${arg.romId} not found.`);
     }
     console.log(
-      `Setting target core ID ${arg.coreId} for ROM with ID ${arg.romId}.`
+      `Setting target core ID ${arg.coreId} for ROM with ID ${arg.romId}.`,
     );
     rom.targetCoreId = arg.coreId;
 
@@ -112,23 +114,35 @@ export const IpcServer = {
     password: string | null;
     origin: string;
   }): Promise<void> {
-    const auth = await DbAuth.get();
+    const auth = await db.query.authSchema.findFirst({
+      where: (table, { eq }) => eq(table.origin, arg.origin),
+    });
     if (!auth) {
       if (!arg.username || !arg.password || !arg.origin) {
         throw new Error("Username, password, and origin must be provided.");
       }
-      DbAuth.set(arg.username, arg.password, arg.origin);
+      // DbAuth.set(arg.username, arg.password, arg.origin);
+      await db.insert(authSchema).values({
+        username: arg.username,
+        password: arg.password,
+        origin: arg.origin,
+      });
     } else {
-      DbAuth.set(
-        arg.username,
-        arg.password || auth.password, // Keep existing password if null or empty
-        arg.origin
-      );
+      // DbAuth.set(
+      //   arg.username,
+      //   arg.password || auth.password, // Keep existing password if null or empty
+      //   arg.origin,
+      // );
+      await db.update(authSchema).set({
+        username: arg.username,
+        password: arg.password || authSchema.password, // Keep existing password if null or empty
+        origin: arg.origin,
+      });
     }
   },
 } satisfies Record<
   (typeof ipcActions)[number],
-  (...args: any[]) => Promise<any>
+  (...args: unknown[]) => Promise<unknown>
 >;
 
 export type IpcResponse<T> =

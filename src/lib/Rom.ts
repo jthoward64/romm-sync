@@ -1,14 +1,14 @@
-import type { RetroarchRom } from "@prisma/client";
 import type { SimpleRomSchema } from "@tajetaje/romm-api";
+import type { retroarchRomSchema } from "./database/schema.ts";
 
 export class Rom {
-  public retroarchRom?: RetroarchRom;
+  public retroarchRom?: typeof retroarchRomSchema.$inferSelect;
 
   constructor(
     public readonly rommRom: SimpleRomSchema,
     downloaded: {
-      retroarch?: RetroarchRom;
-    }
+      retroarch?: typeof retroarchRomSchema.$inferSelect;
+    },
   ) {
     this.retroarchRom = downloaded.retroarch;
   }
