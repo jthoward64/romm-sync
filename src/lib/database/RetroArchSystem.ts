@@ -76,14 +76,16 @@ export class DbRetroArchSystem {
 
   public static async getByRommSlug(
     rommSlug: string
-  ): Promise<DbRetroArchSystem | null> {
-    const row = this.rommSlugQuery.get(rommSlug) as any;
-    if (!row) return null;
-    return new DbRetroArchSystem(
-      row.id,
-      row.system_id,
-      row.romm_slug,
-      row.romm_system_id
+  ): Promise<DbRetroArchSystem[] | null> {
+    const rows = this.rommSlugQuery.all(rommSlug) as any;
+    return rows.map(
+      (row: any) =>
+        new DbRetroArchSystem(
+          row.id,
+          row.system_id,
+          row.romm_slug,
+          row.romm_system_id
+        )
     );
   }
 
@@ -93,14 +95,16 @@ export class DbRetroArchSystem {
 
   public static async getByRommSystemId(
     rommSystemId: number
-  ): Promise<DbRetroArchSystem | null> {
-    const row = this.rommSystemIdQuery.get(rommSystemId) as any;
-    if (!row) return null;
-    return new DbRetroArchSystem(
-      row.id,
-      row.system_id,
-      row.romm_slug,
-      row.romm_system_id
+  ): Promise<DbRetroArchSystem[] | null> {
+    const rows = this.rommSystemIdQuery.all(rommSystemId) as any;
+    return rows.map(
+      (row: any) =>
+        new DbRetroArchSystem(
+          row.id,
+          row.system_id,
+          row.romm_slug,
+          row.romm_system_id
+        )
     );
   }
 

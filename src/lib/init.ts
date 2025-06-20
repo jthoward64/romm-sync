@@ -1,6 +1,7 @@
 import { readdir } from "node:fs/promises";
 import { DbAuth } from "./database/Auth";
 import { DbRetroArchCore } from "./database/RetroArchCore";
+import { DbRetroArchRom } from "./database/RetroArchRom";
 import { LibRetroInfo } from "./retroarch/libretro-info/LibretroInfo";
 import { retroArchPaths } from "./retroarch/paths";
 import { RommApiClient } from "./romm/RomM";
@@ -38,5 +39,5 @@ for (const rom of roms) {
     console.log(`ROM not found in downloads: ${rom.id}`);
   }
 
-  // await DbRetroArchRom.insert();
+  DbRetroArchRom.insert(false, rom.id, null);
 }

@@ -1,35 +1,32 @@
 import { db } from "./db";
-import { DbRetroArchCore, type CompleteCore } from "./RetroArchCore";
+import { type CompleteCore } from "./RetroArchCore";
 
 export class DbRetroArchRom {
   public static schema = ``;
 
   constructor(
     public id: number,
-    public retroarchPath: string,
+    public retroarchPath: string | null,
     public syncing: boolean,
-    public systemId: number,
     public rommRomId: number
   ) {}
 
   private static insertQuery = db.prepare(
-    `INSERT INTO retroarch_rom (retroarch_path, syncing, system_id, romm_rom_id)
-     VALUES (?, ?, ?, ?);`
+    `INSERT INTO retroarch_rom (retroarch_path, syncing,  romm_rom_id)
+     VALUES (?, ?, ?);`
   );
   public static insert(
     syncing: boolean,
     rommRomId: number,
-    coreId: number,
     retroarchPath: string | null
   ) {
-    this.insertQuery.run(retroarchPath, syncing ? 1 : 0, coreId, rommRomId);
+    this.insertQuery.run(retroarchPath, syncing ? 1 : 0, rommRomId);
   }
 
   private static updateQuery = db.prepare(
     `UPDATE retroarch_rom SET
      retroarch_path = ?,
      syncing = ?,
-     system_id = ?,
      romm_rom_id = ?
      WHERE id = ?;`
   );
@@ -37,7 +34,6 @@ export class DbRetroArchRom {
     DbRetroArchRom.updateQuery.run(
       this.retroarchPath,
       this.syncing ? 1 : 0,
-      this.systemId,
       this.rommRomId,
       this.id
     );
@@ -53,7 +49,6 @@ export class DbRetroArchRom {
       row.id,
       row.retroarch_path,
       Boolean(row.syncing),
-      row.system_id,
       row.romm_rom_id
     );
   }
@@ -67,7 +62,6 @@ export class DbRetroArchRom {
           row.id,
           row.retroarch_path,
           Boolean(row.syncing),
-          row.system_id,
           row.romm_rom_id
         )
     );
@@ -78,19 +72,6 @@ export class DbRetroArchRom {
   );
   public async delete() {
     DbRetroArchRom.deleteQuery.run(this.id);
-  }
-
-  public async getCore(): Promise<DbRetroArchCore | null> {
-    return DbRetroArchCore.get(this.systemId);
-  }
-
-  public async withCore(): Promise<CompleteRom | null> {
-    const core = await this.getCore();
-    if (!core) return null;
-    return {
-      ...this,
-      core: core as CompleteCore,
-    };
   }
 }
 
