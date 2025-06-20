@@ -5,7 +5,7 @@ import { IpcClient } from "../../../ipc/Client.ts";
 
 const SECRET_PASSWORD = "********";
 
-export function Settings() {
+export function Settings({ onUpdated }: { onUpdated?: () => void }) {
   const [initialSettings, setInitialSettings] = useState<
     | {
         username: string;
@@ -22,6 +22,7 @@ export function Settings() {
       const settings = await IpcClient.getSettings();
       if (settings.ok) {
         setInitialSettings(settings.settings);
+        console.log(JSON.stringify(settings));
       } else {
         show(`Error fetching settings: ${settings.error.message}`, {
           severity: "error",
@@ -53,6 +54,7 @@ export function Settings() {
         }).then((result) => {
           if (result.ok) {
             show("Settings saved successfully!", { severity: "success" });
+            onUpdated?.();
           } else {
             show(`Error saving settings: ${result.error.message}`, {
               severity: "error",

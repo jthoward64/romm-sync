@@ -18,7 +18,12 @@ export const syncJob = new Cron(
             error,
           );
         }
+      } else {
+        console.log(
+          `ROM ${rom.rommRom.slug} (${rom.rommRom.id}) is not set for syncing, skipping.`,
+        );
       }
     }
   },
+  { paused: true },
 );

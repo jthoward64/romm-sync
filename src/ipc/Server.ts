@@ -1,8 +1,10 @@
 import { eq } from "drizzle-orm";
 import { db } from "../lib/database/db.ts";
 import { authSchema, retroarchRomSchema } from "../lib/database/schema.ts";
+import { loadFromRomm } from "../lib/init.ts";
 import { getAllRoms } from "../lib/interface.ts";
 import type { Rom } from "../lib/Rom.ts";
+import { RommApiClient } from "../lib/romm/RomM.ts";
 import { syncJob } from "../lib/sync/sync.ts";
 import type { ipcActions } from "./actions.ts";
 
@@ -16,7 +18,7 @@ export const IpcServer = {
     enabled: boolean;
   }): Promise<{ rom: typeof retroarchRomSchema.$inferSelect }> {
     // const rom = await DbRetroArchRom.getByRommRomId(arg.id);
-    const rom = await db.query.retroarchRom.findFirst({
+    const rom = await db.query.retroarchRomSchema.findFirst({
       where: (table, { eq }) => eq(table.rommRomId, arg.id),
     });
     if (!rom) {
@@ -35,10 +37,11 @@ export const IpcServer = {
           syncing: arg.enabled,
           rommFileId: arg.enabled ? retroarchRomSchema.rommFileId : null,
           retroarchPath: arg.enabled ? retroarchRomSchema.retroarchPath : null,
+          targetCoreId: arg.enabled ? retroarchRomSchema.targetCoreId : null,
         })
         .where(eq(retroarchRomSchema.rommRomId, arg.id));
     }
-    const newRom = await db.query.retroarchRom.findFirst({
+    const newRom = await db.query.retroarchRomSchema.findFirst({
       where: (table, { eq }) => eq(table.rommRomId, arg.id),
     });
     if (!newRom) {
@@ -54,14 +57,18 @@ export const IpcServer = {
     romId: number;
     fileId: number | null;
   }): Promise<{ rom: typeof retroarchRomSchema.$inferSelect }> {
-    const rom = await DbRetroArchRom.getByRommRomId(arg.romId);
-    console.log(`Setting file ID ${arg.fileId} for ROM with ID ${arg.romId}.`);
-    rom.rommFileId = arg.fileId;
-
-    rom.update();
-
+    const rom = await db
+      .update(retroarchRomSchema)
+      .set({
+        rommFileId: arg.fileId,
+      })
+      .where(eq(retroarchRomSchema.rommRomId, arg.romId))
+      .returning()
+      .then((rows) => rows[0]);
+    if (!rom) {
+      throw new Error(`ROM with ID ${arg.romId} not found.`);
+    }
     await syncJob.trigger();
-
     return { rom };
   },
 
@@ -69,24 +76,35 @@ export const IpcServer = {
     romId: number;
     coreId: number | null;
   }): Promise<{ rom: typeof retroarchRomSchema.$inferSelect }> {
-    const rom = await DbRetroArchRom.getByRommRomId(arg.romId);
+    const rom = await db
+      .update(retroarchRomSchema)
+      .set({
+        targetCoreId: arg.coreId,
+      })
+      .where(eq(retroarchRomSchema.rommRomId, arg.romId))
+      .returning()
+      .then((rows) => rows[0]);
     if (!rom) {
       throw new Error(`ROM with ID ${arg.romId} not found.`);
     }
-    console.log(
-      `Setting target core ID ${arg.coreId} for ROM with ID ${arg.romId}.`,
-    );
-    rom.targetCoreId = arg.coreId;
-
-    rom.update();
-
     await syncJob.trigger();
-
     return { rom };
   },
 
   async log(arg: { message: string }): Promise<void> {
     console.log(`[IPC LOG] ${arg.message}`);
+  },
+
+  async getStatus(): Promise<{
+    status: {
+      rommApiReady: boolean;
+    };
+  }> {
+    return {
+      status: {
+        rommApiReady: RommApiClient.isInitialized,
+      },
+    };
   },
 
   async getSettings(): Promise<{
@@ -96,7 +114,9 @@ export const IpcServer = {
       origin: string;
     } | null;
   }> {
-    const auth = await DbAuth.get();
+    const auth = await db.query.authSchema.findFirst({
+      where: (table, { eq }) => eq(table.origin, "default"),
+    });
     if (!auth) {
       return { settings: null };
     }
@@ -117,32 +137,42 @@ export const IpcServer = {
     const auth = await db.query.authSchema.findFirst({
       where: (table, { eq }) => eq(table.origin, arg.origin),
     });
+    let updated: typeof authSchema.$inferInsert | undefined;
     if (!auth) {
       if (!arg.username || !arg.password || !arg.origin) {
         throw new Error("Username, password, and origin must be provided.");
       }
-      // DbAuth.set(arg.username, arg.password, arg.origin);
-      await db.insert(authSchema).values({
-        username: arg.username,
-        password: arg.password,
-        origin: arg.origin,
-      });
+      updated = await db
+        .insert(authSchema)
+        .values({
+          username: arg.username,
+          password: arg.password,
+          origin: arg.origin,
+        })
+        .returning()
+        .then((rows) => rows[0]);
     } else {
-      // DbAuth.set(
-      //   arg.username,
-      //   arg.password || auth.password, // Keep existing password if null or empty
-      //   arg.origin,
-      // );
-      await db.update(authSchema).set({
-        username: arg.username,
-        password: arg.password || authSchema.password, // Keep existing password if null or empty
-        origin: arg.origin,
-      });
+      updated = await db
+        .update(authSchema)
+        .set({
+          username: arg.username,
+          password: arg.password || authSchema.password, // Keep existing password if null or empty
+          origin: arg.origin,
+        })
+        .returning()
+        .then((rows) => rows[0]);
+    }
+    if (!updated) {
+      throw new Error("Failed to update settings.");
+    } else {
+      RommApiClient.init(updated);
+      await loadFromRomm();
     }
   },
 } satisfies Record<
   (typeof ipcActions)[number],
-  (...args: unknown[]) => Promise<unknown>
+  // biome-ignore lint/suspicious/noExplicitAny: This is a type check
+  (...args: any[]) => Promise<any>
 >;
 
 export type IpcResponse<T> =

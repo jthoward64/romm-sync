@@ -11,6 +11,7 @@ import ListItem from "@mui/material/ListItem";
 import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
 import { useNotifications } from "@toolpad/core/useNotifications";
+import { useState } from "react";
 import { IpcClient } from "../../../ipc/Client.ts";
 import type { Rom } from "../../../lib/Rom.ts";
 
@@ -22,6 +23,8 @@ export function RomSettings({
   updateRom: (rom: Rom) => void;
 }) {
   const { show } = useNotifications();
+  const [loading, setLoading] = useState(false);
+
   return (
     <ListItem
       key={rom.rommRom.id}
@@ -43,6 +46,7 @@ export function RomSettings({
           <Typography variant="body1">{rom.rommRom.name}</Typography>
           <Switch
             checked={rom.retroarchRom?.syncing ?? false}
+            disabled={loading}
             onChange={async (event) => {
               async function go() {
                 const newRom = await IpcClient.setSync({
@@ -79,47 +83,46 @@ export function RomSettings({
             <AccordionSummary>
               <Typography variant="body2">Syncing with RetroArch</Typography>
             </AccordionSummary>
-            <Typography variant="body2" sx={{ padding: 2 }}>
-              <FormControl fullWidth>
-                <InputLabel>Selected File</InputLabel>
-                <Select<string>
-                  value={rom.retroarchRom.rommFileId?.toString() ?? ""}
-                  onChange={async (event) => {
-                    const newRom = await IpcClient.selectFile({
-                      romId: rom.rommRom.id,
-                      fileId:
-                        event.target.value === ""
-                          ? null
-                          : Number.parseInt(event.target.value),
-                    });
+            <FormControl fullWidth>
+              <InputLabel>Selected File</InputLabel>
+              <Select<string>
+                value={rom.retroarchRom.rommFileId?.toString() ?? ""}
+                disabled={loading}
+                onChange={async (event) => {
+                  setLoading(true);
+                  const newRom = await IpcClient.selectFile({
+                    romId: rom.rommRom.id,
+                    fileId:
+                      event.target.value === ""
+                        ? null
+                        : Number.parseInt(event.target.value),
+                  }).finally(() => {
+                    setLoading(false);
+                  });
 
-                    if (newRom.ok) {
-                      rom.retroarchRom = newRom.rom;
-                      updateRom(rom);
-                    } else {
-                      show(`Failed to select file: ${newRom.error.message}`, {
-                        severity: "error",
-                      });
-                    }
-                  }}
-                  displayEmpty
-                  fullWidth
-                  sx={{ marginTop: 2 }}
-                >
-                  <MenuItem value="">
-                    <em>None</em>
+                  if (newRom.ok) {
+                    rom.retroarchRom = newRom.rom;
+                    updateRom(rom);
+                  } else {
+                    show(`Failed to select file: ${newRom.error.message}`, {
+                      severity: "error",
+                    });
+                  }
+                }}
+                displayEmpty
+                fullWidth
+                sx={{ marginTop: 2 }}
+              >
+                <MenuItem value="">
+                  <em>None</em>
+                </MenuItem>
+                {rom.rommRom.files.map((file) => (
+                  <MenuItem key={file.id.toString()} value={file.id.toString()}>
+                    {file.fileName}
                   </MenuItem>
-                  {rom.rommRom.files.map((file) => (
-                    <MenuItem
-                      key={file.id.toString()}
-                      value={file.id.toString()}
-                    >
-                      {file.fileName}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Typography>
+                ))}
+              </Select>
+            </FormControl>
           </Accordion>
         ) : null}
       </Box>

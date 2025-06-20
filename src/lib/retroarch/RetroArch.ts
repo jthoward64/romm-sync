@@ -1,13 +1,12 @@
 import { stat } from "node:fs/promises";
 import { Temporal } from "@js-temporal/polyfill";
-import type { RetroarchRom } from "@prisma/client";
+import type { retroarchRomSchema } from "../database/schema.ts";
 import type { LibRetroInfo } from "./libretro-info/LibretroInfo.ts";
-import type { CorePaths } from "./paths.ts";
 
 export class RetroArchCore {
   constructor(
     public readonly info: LibRetroInfo,
-    private readonly paths: CorePaths,
+    // private readonly paths: CorePaths,
   ) {}
 }
 
@@ -46,7 +45,7 @@ export class RetroArchSaveFile extends RetroArchFile {}
 export class RetroArchStateFile extends RetroArchFile {}
 
 export class RetroArchRomFile extends RetroArchFile {
-  constructor(retroarch: RetroarchRom) {
+  constructor(retroarch: typeof retroarchRomSchema.$inferSelect) {
     // biome-ignore lint/style/noNonNullAssertion: Checked below
     super(retroarch.retroarchPath!);
 

@@ -35,7 +35,7 @@
     "webview-bun": "github:jthoward64/webview-bun"
   },
   "scripts": {
-    "build": "vite build && bun build ./src/index.ts --compile --minify --outfile=./build/romm-sync --production",
+    "build": "vite build && bun build --compile --minify --outfile=./build/romm-sync --production ./src/index.ts ./drizzle/**/*",
     "start": "bun src/index.ts",
     "start:ui": "bun vite"
   }

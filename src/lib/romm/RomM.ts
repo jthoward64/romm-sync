@@ -1,4 +1,3 @@
-import type { Auth } from "@prisma/client";
 import {
   AuthApi,
   CollectionsApi,
@@ -13,13 +12,14 @@ import {
   SavesApi,
   ScreenshotsApi,
   SearchApi,
+  type SimpleRomSchema,
   StatesApi,
   StatsApi,
   SystemApi,
   TasksApi,
   UsersApi,
-  type SimpleRomSchema,
 } from "@tajetaje/romm-api";
+import type { authSchema } from "../database/schema.ts";
 
 export class RommApiClient {
   readonly authApi: AuthApi;
@@ -39,7 +39,7 @@ export class RommApiClient {
   readonly collectionsApi: CollectionsApi;
   readonly screenshotsApi: ScreenshotsApi;
 
-  constructor(auth: Auth) {
+  constructor(auth: Omit<typeof authSchema.$inferSelect, "id">) {
     const configuration = createConfiguration({
       authMethods: {
         HTTPBasic: {
@@ -80,10 +80,13 @@ export class RommApiClient {
     return RommApiClient.#instance;
   }
 
-  public static init(auth: Auth): RommApiClient {
-    if (RommApiClient.#instance) {
-      throw new Error("RommApiClient is already initialized.");
-    }
+  public static get isInitialized(): boolean {
+    return RommApiClient.#instance !== null;
+  }
+
+  public static init(
+    auth: Omit<typeof authSchema.$inferSelect, "id">,
+  ): RommApiClient {
     RommApiClient.#instance = new RommApiClient(auth);
     return RommApiClient.#instance;
   }

@@ -1,7 +1,7 @@
 import CircularProgress from "@mui/material/CircularProgress";
 import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { IpcClient } from "../../../ipc/Client.ts";
 import type { Rom } from "../../../lib/Rom.ts";
 import { RomSettings } from "./RomSettings.tsx";
@@ -34,6 +34,18 @@ export function Roms() {
     void fetchRoms();
   }, []);
 
+  const sortedRoms = useMemo(
+    () =>
+      roms.toSorted(
+        // syncing first, then alphabetically by name
+        (a, b) =>
+          (b.retroarchRom?.syncing ? 1 : 0) -
+            (a.retroarchRom?.syncing ? 1 : 0) ||
+          (a.rommRom.name ?? "").localeCompare(b.rommRom.name ?? ""),
+      ),
+    [roms],
+  );
+
   if (loading) {
     return <CircularProgress sx={{ display: "block", margin: "auto" }} />;
   }
@@ -46,7 +58,7 @@ export function Roms() {
     );
   }
 
-  if (roms.length === 0) {
+  if (sortedRoms.length === 0) {
     return (
       <Typography variant="body1" sx={{ textAlign: "center" }}>
         No ROMs found.
@@ -59,23 +71,15 @@ export function Roms() {
       <Typography variant="h6" sx={{ marginBottom: 2 }}>
         Available ROMs
       </Typography>
-      {roms.map((rom) => (
+      {sortedRoms.map((rom) => (
         <RomSettings
           key={rom.rommRom.id}
           rom={rom}
           updateRom={(newRom) =>
-            setRoms((roms) =>
-              [
-                ...roms.filter((r) => r.rommRom.id !== rom.rommRom.id),
-                newRom,
-              ].sort(
-                // syncing first, then alphabetically by name
-                (a, b) =>
-                  (b.retroarchRom?.syncing ? 1 : 0) -
-                    (a.retroarchRom?.syncing ? 1 : 0) ||
-                  (a.rommRom.name ?? "").localeCompare(b.rommRom.name ?? ""),
-              ),
-            )
+            setRoms((roms) => [
+              ...roms.filter((r) => r.rommRom.id !== rom.rommRom.id),
+              newRom,
+            ])
           }
         />
       ))}
