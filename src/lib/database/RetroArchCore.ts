@@ -76,7 +76,6 @@ export class DbRetroArchCore {
    * Retrieves a core from the database based on the provided LibRetroInfo and platforms.
    * If the core does not exist, it creates a new entry in the database.
    *
-    console.debug(`Attempting to retrieve or create core entry for ${info.infoFile.name} in the database.`);
    * @param platforms - An array of PlatformSchema objects representing available platforms.
    * @returns A promise that resolves to the DbRetroArchCore instance or null if creation fails.
    */
@@ -84,21 +83,13 @@ export class DbRetroArchCore {
     info: LibRetroInfo,
     platforms: PlatformSchema[]
   ) {
-    console.debug(`Checking for core ${info.infoFile.name} in database.`);
     const existing = await this.getByFileName(info.infoFile.name);
     if (existing) {
-      console.debug(`Core ${info.infoFile.name} already exists in database.`);
       return existing;
     }
-    console.debug(
-      `Core ${info.infoFile.name} not found in database. Creating.`
-    );
     const { systemId, systemName } = info;
     const paths = CorePaths.fromInfo(retroArchPaths, info);
     if (!paths) {
-      console.debug(
-        `No core paths found for ${info.infoFile.name}. Skipping core creation.`
-      );
       return null;
     }
 
@@ -114,23 +105,12 @@ export class DbRetroArchCore {
       });
 
     if (!systemId) {
-      console.debug(
-        `No system ID found for ${info.infoFile.name}. Skipping core creation.`
-      );
       return null;
-    } else {
-      console.debug(
-        `Found system ID ${systemId} for core ${info.infoFile.name}.`
-      );
     }
 
     let system = await DbRetroArchSystem.getBySystemId(systemId);
 
     if (!system) {
-      console.debug(
-        `System ID ${systemId} not found in database. Inserting new system.`
-      );
-
       const rommSystem = rommSystemForRetroarchInfo(info, platforms);
 
       if (!rommSystem) {
@@ -141,14 +121,6 @@ export class DbRetroArchCore {
         }
         return null;
       }
-
-      console.debug(
-        `Found ROMM system ${rommSystem.name} (${JSON.stringify([
-          systemId,
-          rommSystem.slug,
-          rommSystem.id === -1 ? null : rommSystem.id,
-        ])} for system ID ${systemId}.`
-      );
 
       await DbRetroArchSystem.insert(
         systemId,
@@ -167,10 +139,6 @@ export class DbRetroArchCore {
     }
 
     this.insert(info.infoFile.name, exists, system.id);
-
-    console.debug(
-      `Inserted core ${info.infoFile.name} into table 'retroarch_core' with system ID ${system.id} and downloaded status ${exists}.`
-    );
 
     return this.getByFileName(info.infoFile.name);
   }

@@ -26,7 +26,7 @@ export function rommSystemForRetroarchInfo(
     case "commodore_c128":
       return platformBySlug("c64");
     case "commodore_c64dtv":
-      return platformBySlug("commodore_c64dtv");
+      return platformBySlug("commodore-cdtv");
     case "commodore_plus4":
       return platformBySlug("c-plus-4");
     case "commodore_pet":
@@ -42,7 +42,6 @@ export function rommSystemForRetroarchInfo(
     case "chailove":
     case "chip_8":
     case "commodore_c64_supercpu":
-    case "commodore_c64dtv":
     case "commodore_cbm2":
     case "commodore_cbm5x0":
     case "cpc":

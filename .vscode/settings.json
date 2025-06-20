@@ -7,5 +7,6 @@
   },
   "prettier.embeddedLanguageFormatting": "auto",
   "editor.formatOnSave": true,
-  "cSpell.words": ["libretro", "retroarch", "romm"]
+  "cSpell.words": ["libretro", "retroarch", "romm"],
+  "bun.runtime": "/var/home/tagho/.local/share/npm/bin/bun"
 }
