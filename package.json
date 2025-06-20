@@ -14,6 +14,7 @@
     "@js-temporal/polyfill": "^0.5.1",
     "@tajetaje/romm-api": "latest",
     "electrobun": "^0.0.18",
+    "form-data": "^4.0.3",
     "webview-bun": "^2.4.0"
   },
   "scripts": {

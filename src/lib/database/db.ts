@@ -15,7 +15,9 @@ CREATE TABLE IF NOT EXISTS auth (
 );
 CREATE TABLE IF NOT EXISTS retroarch_system (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  system_id TEXT NOT NULL
+  system_id TEXT NOT NULL UNIQUE,
+  romm_slug TEXT NOT NULL UNIQUE,
+  romm_system_id INTEGER UNIQUE
 );
 CREATE TABLE IF NOT EXISTS retroarch_core (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,11 +28,11 @@ CREATE TABLE IF NOT EXISTS retroarch_core (
 );
 CREATE TABLE IF NOT EXISTS retroarch_rom (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  retroarch_path TEXT NOT NULL UNIQUE,
+  retroarch_path TEXT UNIQUE,
   syncing INTEGER NOT NULL DEFAULT 0,
-  core_id INTEGER NOT NULL,
+  system_id INTEGER NOT NULL,
   romm_rom_id INTEGER NOT NULL,
-  FOREIGN KEY (core_id) REFERENCES retroarch_core(id)
+  FOREIGN KEY (system_id) REFERENCES retroarch_core(id)
 );
 `;
 

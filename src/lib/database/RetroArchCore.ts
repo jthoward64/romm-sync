@@ -1,3 +1,4 @@
+import type { PlatformSchema } from "@tajetaje/romm-api";
 import { stat } from "node:fs/promises";
 import type { LibRetroInfo } from "../retroarch/libretro-info/LibretroInfo";
 import { CorePaths, retroArchPaths } from "../retroarch/paths";
@@ -70,7 +71,10 @@ export class DbRetroArchCore {
     );
   }
 
-  public static async getOrCreateFromInfo(info: LibRetroInfo) {
+  public static async getOrCreateFromInfo(
+    info: LibRetroInfo,
+    platforms: PlatformSchema[]
+  ) {
     console.debug(`Checking for core ${info.infoFile.name} in database...`);
     const existing = await this.getByFileName(info.infoFile.name);
     if (existing) {
@@ -80,7 +84,7 @@ export class DbRetroArchCore {
     console.debug(
       `Core ${info.infoFile.name} not found in database. Creating...`
     );
-    const { systemId } = info;
+    const { systemId, systemName } = info;
     const paths = CorePaths.fromInfo(retroArchPaths, info);
     if (!paths) {
       console.debug(
@@ -88,9 +92,11 @@ export class DbRetroArchCore {
       );
       return null;
     }
+
     const exists = await stat(paths.core)
       .then(() => true)
       .catch(() => false);
+
     if (!systemId) {
       console.debug(
         `No system ID found for ${info.infoFile.name}. Skipping core creation.`
@@ -101,24 +107,63 @@ export class DbRetroArchCore {
         `Found system ID ${systemId} for core ${info.infoFile.name}.`
       );
     }
+
     let system = await DbRetroArchSystem.getBySystemId(systemId);
+
     if (!system) {
       console.debug(
         `System ID ${systemId} not found in database. Inserting new system.`
       );
-      await DbRetroArchSystem.insert(systemId);
+
+      const rommSystem = platforms.find((p) => {
+        const retroarchNames = [
+          info.systemName?.toLowerCase(),
+          info.systemId?.toLowerCase(),
+        ].map((str) => str?.replaceAll("-", "").replaceAll("_", ""));
+        const rommNames = [p.name.toLowerCase(), p.slug.toLowerCase()].map(
+          (str) => str.replaceAll("-", "").replaceAll("_", "")
+        );
+
+        return retroarchNames.some((n) => n != null && rommNames.includes(n));
+      });
+
+      if (!rommSystem) {
+        console.error(
+          `No matching ROMM system found for ${systemId}. Cannot parse system.`
+        );
+        return null;
+      }
+
+      console.debug(
+        `Found ROMM system ${rommSystem.name} (${JSON.stringify([
+          systemId,
+          rommSystem.slug,
+          rommSystem.id === -1 ? null : rommSystem.id,
+        ])} for system ID ${systemId}.`
+      );
+
+      await DbRetroArchSystem.insert(
+        systemId,
+        rommSystem.slug,
+        rommSystem.id === -1 ? null : rommSystem.id
+      );
+
       system = await DbRetroArchSystem.getBySystemId(systemId);
     }
+
     if (!system) {
       console.error(
         `Failed to retrieve system ID for ${systemId} after insertion.`
       );
       return null;
     }
+
     this.insert(info.infoFile.name, exists, system.id);
+
     console.debug(
       `Inserted core ${info.infoFile.name} with system ID ${system.id} and downloaded status ${exists}.`
     );
+
     return this.getByFileName(info.infoFile.name);
   }
 

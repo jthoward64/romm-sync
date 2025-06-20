@@ -8,12 +8,12 @@ export class DbRetroArchRom {
     public id: number,
     public retroarchPath: string,
     public syncing: boolean,
-    public coreId: number,
+    public systemId: number,
     public rommRomId: number
   ) {}
 
   private static insertQuery = db.prepare(
-    `INSERT INTO retroarch_rom (retroarch_path, syncing, core_id, romm_rom_id)
+    `INSERT INTO retroarch_rom (retroarch_path, syncing, system_id, romm_rom_id)
      VALUES (?, ?, ?, ?);`
   );
   public static insert(
@@ -29,7 +29,7 @@ export class DbRetroArchRom {
     `UPDATE retroarch_rom SET
      retroarch_path = ?,
      syncing = ?,
-     core_id = ?,
+     system_id = ?,
      romm_rom_id = ?
      WHERE id = ?;`
   );
@@ -37,7 +37,7 @@ export class DbRetroArchRom {
     DbRetroArchRom.updateQuery.run(
       this.retroarchPath,
       this.syncing ? 1 : 0,
-      this.coreId,
+      this.systemId,
       this.rommRomId,
       this.id
     );
@@ -53,7 +53,7 @@ export class DbRetroArchRom {
       row.id,
       row.retroarch_path,
       Boolean(row.syncing),
-      row.core_id,
+      row.system_id,
       row.romm_rom_id
     );
   }
@@ -67,7 +67,7 @@ export class DbRetroArchRom {
           row.id,
           row.retroarch_path,
           Boolean(row.syncing),
-          row.core_id,
+          row.system_id,
           row.romm_rom_id
         )
     );
@@ -81,7 +81,7 @@ export class DbRetroArchRom {
   }
 
   public async getCore(): Promise<DbRetroArchCore | null> {
-    return DbRetroArchCore.get(this.coreId);
+    return DbRetroArchCore.get(this.systemId);
   }
 
   public async withCore(): Promise<CompleteRom | null> {
