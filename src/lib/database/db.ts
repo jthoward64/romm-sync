@@ -30,7 +30,10 @@ CREATE TABLE IF NOT EXISTS retroarch_rom (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   retroarch_path TEXT UNIQUE,
   syncing INTEGER NOT NULL DEFAULT 0,
-  romm_rom_id INTEGER NOT NULL UNIQUE
+  romm_rom_id INTEGER NOT NULL UNIQUE,
+  romm_file_id INTEGER,
+  target_core_id INTEGER,
+  FOREIGN KEY (target_core_id) REFERENCES retroarch_core(id)
 );
 `;
 

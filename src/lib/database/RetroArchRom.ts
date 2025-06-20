@@ -8,26 +8,29 @@ export class DbRetroArchRom {
     public id: number,
     public retroarchPath: string | null,
     public syncing: boolean,
-    public rommRomId: number
+    public rommRomId: number,
+    public rommFileId: number | null
   ) {}
 
   private static insertQuery = db.prepare(
-    `INSERT INTO retroarch_rom (retroarch_path, syncing,  romm_rom_id)
-     VALUES (?, ?, ?);`
+    `INSERT INTO retroarch_rom (retroarch_path, syncing, romm_rom_id, romm_file_id)
+     VALUES (?, ?, ?, ?);`
   );
   public static insert(
     syncing: boolean,
     rommRomId: number,
-    retroarchPath: string | null
+    retroarchPath: string | null,
+    rommFileId: number | null
   ) {
-    this.insertQuery.run(retroarchPath, syncing ? 1 : 0, rommRomId);
+    this.insertQuery.run(retroarchPath, syncing ? 1 : 0, rommRomId, rommFileId);
   }
 
   private static updateQuery = db.prepare(
     `UPDATE retroarch_rom SET
      retroarch_path = ?,
      syncing = ?,
-     romm_rom_id = ?
+     romm_rom_id = ?,
+     romm_file_id = ?
      WHERE id = ?;`
   );
   public update() {
@@ -35,6 +38,7 @@ export class DbRetroArchRom {
       this.retroarchPath,
       this.syncing ? 1 : 0,
       this.rommRomId,
+      this.rommFileId,
       this.id
     );
   }
@@ -49,7 +53,8 @@ export class DbRetroArchRom {
       row.id,
       row.retroarch_path,
       Boolean(row.syncing),
-      row.romm_rom_id
+      row.romm_rom_id,
+      row.romm_file_id
     );
   }
 
@@ -65,7 +70,8 @@ export class DbRetroArchRom {
       row.id,
       row.retroarch_path,
       Boolean(row.syncing),
-      row.romm_rom_id
+      row.romm_rom_id,
+      row.romm_file_id
     );
   }
 
@@ -78,7 +84,8 @@ export class DbRetroArchRom {
           row.id,
           row.retroarch_path,
           Boolean(row.syncing),
-          row.romm_rom_id
+          row.romm_rom_id,
+          row.romm_file_id
         )
     );
   }

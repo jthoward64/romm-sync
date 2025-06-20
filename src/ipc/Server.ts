@@ -1,6 +1,7 @@
 import { DbRetroArchRom } from "../lib/database/RetroArchRom";
 import { getAllRoms } from "../lib/interface";
 import type { Rom } from "../lib/Rom";
+import { syncJob } from "../lib/sync/sync";
 import type { ipcActions } from "./actions";
 
 export const IpcServer = {
@@ -18,13 +19,18 @@ export const IpcServer = {
       DbRetroArchRom.insert(
         arg.enabled,
         arg.id,
-        null // No retroarch path set yet
+        null, // No retroarch path set yet
+        null
       );
     } else {
       console.log(
         `Updating ROM with ID ${arg.id} to set syncing to ${arg.enabled}.`
       );
       rom.syncing = arg.enabled;
+      if (!arg.enabled) {
+        rom.rommFileId = null; // Clear the file ID if syncing is disabled
+        rom.retroarchPath = null; // Clear the retroarch path if syncing is disabled
+      }
       rom.update();
     }
     const newRom = await DbRetroArchRom.getByRommRomId(arg.id);
@@ -32,6 +38,24 @@ export const IpcServer = {
       throw new Error(`ROM with ID ${arg.id} not found after update.`);
     }
     return { rom: newRom };
+  },
+
+  async selectFile(arg: {
+    romId: number;
+    fileId: number | null;
+  }): Promise<{ rom: DbRetroArchRom }> {
+    const rom = await DbRetroArchRom.getByRommRomId(arg.romId);
+    if (!rom) {
+      throw new Error(`ROM with ID ${arg.romId} not found.`);
+    }
+    console.log(`Setting file ID ${arg.fileId} for ROM with ID ${arg.romId}.`);
+    rom.rommFileId = arg.fileId;
+
+    rom.update();
+
+    await syncJob.trigger();
+
+    return { rom };
   },
 
   async log(arg: { message: string }): Promise<void> {

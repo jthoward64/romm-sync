@@ -1,1 +1,6 @@
-export const ipcActions = ["getDbRoms", "setSync", "log"] as const;
+export const ipcActions = [
+  "getDbRoms",
+  "setSync",
+  "log",
+  "selectFile",
+] as const;

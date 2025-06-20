@@ -44,7 +44,8 @@ for (const rom of roms) {
     DbRetroArchRom.insert(
       false,
       rom.id,
-      (match && join(retroArchPaths.downloads, match)) || null
+      (match && join(retroArchPaths.downloads, match)) || null,
+      rom.files.find((file) => file.fileName === match)?.id || null
     );
   }
 }

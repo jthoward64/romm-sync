@@ -26,22 +26,34 @@ export class RetroArchFile {
     const statResult = await stat(this.path);
     return Temporal.Instant.fromEpochMilliseconds(statResult.mtimeMs);
   }
+
+  async exists(): Promise<boolean> {
+    try {
+      await stat(this.path);
+      return true;
+    } catch (error) {
+      if ((error as any).code === "ENOENT") {
+        return false;
+      }
+      throw error;
+    }
+  }
 }
 
-export class RetroArchSave extends RetroArchFile {
+export class RetroArchSaveFile extends RetroArchFile {
   constructor(path: string) {
     super(path);
   }
 }
 
-export class RetroArchState extends RetroArchFile {
+export class RetroArchStateFile extends RetroArchFile {
   constructor(path: string) {
     super(path);
   }
 }
 
-export class RetroArchRom extends RetroArchFile {
-  constructor(public readonly retroarch: DbRetroArchRom) {
+export class RetroArchRomFile extends RetroArchFile {
+  constructor(retroarch: DbRetroArchRom) {
     super(retroarch.retroarchPath!);
 
     if (!retroarch.retroarchPath) {
