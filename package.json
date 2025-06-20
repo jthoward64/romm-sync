@@ -26,7 +26,7 @@
     "react-dom": "^19.1.0",
     "vite": "^6.3.5",
     "vite-plugin-singlefile": "^2.2.0",
-    "webview-bun": "github:exoRift/webview-bun"
+    "webview-bun": "github:jthoward64/webview-bun"
   },
   "scripts": {
     "build": "vite build",

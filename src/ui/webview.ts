@@ -1,33 +1,28 @@
 import { file } from "bun";
 import { Webview } from "webview-bun";
-import { DbRetroArchRom } from "../lib/database/RetroArchRom";
-import html from "./ui/dist/index.html" with { type: "file" };
+import { IpcServer, type IpcAction, type IpcArgument, type IpcResponse, type IpcResult } from "../ipc/Server";
+import html from "./dist/index.html" with { type: "file" };
 
 const webview = new Webview();
 
 webview.setHTML(await file(html).text());
 
-webview.bind("sendEvent", async (event:string, payload: any): Promise<any> => {
-  // todo proxy this to main thread
-  const result: Record<string,unknown> = {ok:true};
+console.log("Webview initialized with HTML content");
 
-  switch (event) {
-    case "getRoms": {
-      result.roms = await DbRetroArchRom.all();
-      break;
-    }
-    default: {
-      return {
-        ok: false,
-        error:{
-          message: "Invalid event"
-        }
-      }
-    }
+
+webview.bind("sendEvent", async <K extends IpcAction>(event:K, payload: IpcArgument<K>): Promise<IpcResponse<IpcResult<K>>> => {
+  try {
+    const result = await IpcServer[event](payload as any) as IpcResult<K>;
+    Object.defineProperty(result, "ok", {
+      value: true,
+      writable: false,
+      enumerable: true,
+      configurable: false
+    });
+    return result as IpcResponse<IpcResult<K>>;
+  } catch (error) {
+    return { ok: false, error: { message: String(error) } };
   }
-
-  return result
-
 });
 
 declare global {
@@ -37,4 +32,16 @@ declare global {
   ) => Promise<R>;
 }
 
-webview.run();
+webview.runNonBlocking();
+
+console.log("Webview is running");
+
+await new Promise<void>((resolve) => {
+  const interval = setInterval(() => {
+    if (webview.unsafeHandle == null) {
+      console.log("Webview closed, resolving promise");
+      resolve();
+      clearInterval(interval);
+    }
+  }, 1000);
+});

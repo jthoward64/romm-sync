@@ -1,6 +1,7 @@
 import { DbRetroArchRom } from "../lib/database/RetroArchRom";
 import { getRetroarchRoms } from "../lib/retroarch/interface";
 import type { RetroArchRom } from "../lib/retroarch/RetroArch";
+import type { ipcActions } from "./actions";
 
 export const IpcServer = {
   async getDbRoms(): Promise<RetroArchRom[]> {
@@ -15,7 +16,14 @@ export const IpcServer = {
     rom.syncing = arg.enabled;
     rom.update();
   },
-};
+
+  async log(arg: { message: string }): Promise<void> {
+    console.log(`[IPC LOG] ${arg.message}`);
+  },
+} satisfies Record<
+  (typeof ipcActions)[number],
+  (...args: any[]) => Promise<any>
+>;
 
 export type IpcResponse<T> =
   | (T & { ok: true })

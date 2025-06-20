@@ -4,8 +4,37 @@
   <meta charset="utf-8" />
   <title>RomM Sync</title>
   <meta name="viewport" content="initial-scale=1, width=device-width" />
+  <script>
+    console.log = (...args) => {
+      sendEvent("log", { message: args.join(" ") });
+    };
+    console.error = (...args) => {
+      sendEvent("log", { message: "ERROR: " + args.join(" ") });
+    };
+    console.warn = (...args) => {
+      sendEvent("log", { message: "WARN: " + args.join(" ") });
+    };
+    console.info = (...args) => {
+      sendEvent("log", { message: "INFO: " + args.join(" ") });
+    };
+    console.log("Webview console initialized");
+    addEventListener("DOMContentLoaded", () => {
+      sendEvent("log", { message: "DOM fully loaded and parsed" });
+    });
+    addEventListener("error", (event) => {
+      sendEvent("log", { message: "ERROR: " + event.message });
+    });
+    addEventListener("unhandledrejection", (event) => {
+      sendEvent("log", { message: "UNHANDLED REJECTION: " + event.reason });
+    });
+  </script>
 </head>
 <body>
+  <noscript>
+    <strong>We're sorry but RomM Sync doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+  </noscript>
+  <h1>HEY</h1>
+  <div id="app"></div>
   <script src="./main.tsx" type="module"></script>
 </body>
 </html>
