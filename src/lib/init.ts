@@ -45,7 +45,8 @@ for (const rom of roms) {
       false,
       rom.id,
       (match && join(retroArchPaths.downloads, match)) || null,
-      rom.files.find((file) => file.fileName === match)?.id || null
+      rom.files.find((file) => file.fileName === match)?.id || null,
+      null
     );
   }
 }

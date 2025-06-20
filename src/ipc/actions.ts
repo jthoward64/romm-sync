@@ -3,4 +3,5 @@ export const ipcActions = [
   "setSync",
   "log",
   "selectFile",
+  "setTargetCore",
 ] as const;

@@ -20,6 +20,7 @@ export const IpcServer = {
         arg.enabled,
         arg.id,
         null, // No retroarch path set yet
+        null,
         null
       );
     } else {
@@ -54,6 +55,24 @@ export const IpcServer = {
     rom.update();
 
     await syncJob.trigger();
+
+    return { rom };
+  },
+
+  async setTargetCore(arg: {
+    romId: number;
+    coreId: number | null;
+  }): Promise<{ rom: DbRetroArchRom }> {
+    const rom = await DbRetroArchRom.getByRommRomId(arg.romId);
+    if (!rom) {
+      throw new Error(`ROM with ID ${arg.romId} not found.`);
+    }
+    console.log(
+      `Setting target core ID ${arg.coreId} for ROM with ID ${arg.romId}.`
+    );
+    rom.targetCoreId = arg.coreId;
+
+    rom.update();
 
     return { rom };
   },

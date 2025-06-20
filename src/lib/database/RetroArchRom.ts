@@ -1,28 +1,34 @@
 import { db } from "./db";
-import { type CompleteCore } from "./RetroArchCore";
+import { DbRetroArchCore } from "./RetroArchCore";
 
 export class DbRetroArchRom {
-  public static schema = ``;
-
   constructor(
     public id: number,
     public retroarchPath: string | null,
     public syncing: boolean,
     public rommRomId: number,
-    public rommFileId: number | null
+    public rommFileId: number | null,
+    public targetCoreId: number | null
   ) {}
 
   private static insertQuery = db.prepare(
-    `INSERT INTO retroarch_rom (retroarch_path, syncing, romm_rom_id, romm_file_id)
-     VALUES (?, ?, ?, ?);`
+    `INSERT INTO retroarch_rom (retroarch_path, syncing, romm_rom_id, romm_file_id, target_core_id)
+     VALUES (?, ?, ?, ?, ?);`
   );
   public static insert(
     syncing: boolean,
     rommRomId: number,
     retroarchPath: string | null,
-    rommFileId: number | null
+    rommFileId: number | null,
+    targetCoreId: number | null
   ) {
-    this.insertQuery.run(retroarchPath, syncing ? 1 : 0, rommRomId, rommFileId);
+    this.insertQuery.run(
+      retroarchPath,
+      syncing ? 1 : 0,
+      rommRomId,
+      rommFileId,
+      targetCoreId
+    );
   }
 
   private static updateQuery = db.prepare(
@@ -30,7 +36,8 @@ export class DbRetroArchRom {
      retroarch_path = ?,
      syncing = ?,
      romm_rom_id = ?,
-     romm_file_id = ?
+     romm_file_id = ?,
+     target_core_id = ?
      WHERE id = ?;`
   );
   public update() {
@@ -39,6 +46,7 @@ export class DbRetroArchRom {
       this.syncing ? 1 : 0,
       this.rommRomId,
       this.rommFileId,
+      this.targetCoreId,
       this.id
     );
   }
@@ -54,7 +62,8 @@ export class DbRetroArchRom {
       row.retroarch_path,
       Boolean(row.syncing),
       row.romm_rom_id,
-      row.romm_file_id
+      row.romm_file_id,
+      row.target_core_id
     );
   }
 
@@ -71,7 +80,8 @@ export class DbRetroArchRom {
       row.retroarch_path,
       Boolean(row.syncing),
       row.romm_rom_id,
-      row.romm_file_id
+      row.romm_file_id,
+      row.target_core_id
     );
   }
 
@@ -85,9 +95,15 @@ export class DbRetroArchRom {
           row.retroarch_path,
           Boolean(row.syncing),
           row.romm_rom_id,
-          row.romm_file_id
+          row.romm_file_id,
+          row.target_core_id
         )
     );
+  }
+
+  public async getCore(): Promise<DbRetroArchCore | null> {
+    if (!this.targetCoreId) return null;
+    return DbRetroArchCore.get(this.targetCoreId);
   }
 
   private static deleteQuery = db.prepare(
@@ -96,8 +112,4 @@ export class DbRetroArchRom {
   public async delete() {
     DbRetroArchRom.deleteQuery.run(this.id);
   }
-}
-
-interface CompleteRom extends DbRetroArchRom {
-  core: CompleteCore;
 }
