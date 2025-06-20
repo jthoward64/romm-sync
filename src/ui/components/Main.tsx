@@ -7,6 +7,7 @@ import { useState, type SyntheticEvent } from "react";
 import { Roms } from "./roms/Roms";
 
 import { NotificationsProvider } from "@toolpad/core/useNotifications";
+import { Settings } from "./roms/Settings";
 
 export function Main() {
   const [value, setValue] = useState("1");
@@ -24,7 +25,8 @@ export function Main() {
               <Tab label="Roms" value="1" />
               <Tab label="Saves" value="2" />
               <Tab label="States" value="3" />
-              <Tab label="Firmware" value="3" />
+              <Tab label="Firmware" value="4" />
+              <Tab label="Settings" value="5" />
             </TabList>
           </Box>
           <TabPanel value="1">
@@ -33,6 +35,9 @@ export function Main() {
           <TabPanel value="2">NYI</TabPanel>
           <TabPanel value="3">NYI</TabPanel>
           <TabPanel value="4">NYI</TabPanel>
+          <TabPanel value="5">
+            <Settings />
+          </TabPanel>
         </TabContext>
       </Box>
     </NotificationsProvider>

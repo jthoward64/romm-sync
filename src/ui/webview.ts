@@ -12,7 +12,7 @@ import html from "./dist/index.html" with { type: "file" };
 const webview = new Webview();
 
 if (process.env.NODE_ENV === "development") {
-  webview.navigate("http://localhost:5173/");
+  webview.navigate("http://localhost:5174/");
 } else {
   webview.setHTML(await file(html).text());
 }
@@ -26,7 +26,8 @@ webview.bind(
     payload: IpcArgument<K>
   ): Promise<IpcResponse<IpcResult<K>>> => {
     try {
-      const result = (await IpcServer[event](payload as any)) as IpcResult<K>;
+      const result = ((await IpcServer[event](payload as any)) ??
+        {}) as IpcResult<K>;
       Object.defineProperty(result, "ok", {
         value: true,
         writable: false,

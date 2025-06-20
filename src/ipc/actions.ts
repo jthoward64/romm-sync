@@ -4,4 +4,6 @@ export const ipcActions = [
   "log",
   "selectFile",
   "setTargetCore",
+  "getSettings",
+  "setSettings",
 ] as const;

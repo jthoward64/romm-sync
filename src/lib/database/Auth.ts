@@ -17,15 +17,11 @@ export class DbAuth {
     return new DbAuth(row.id, row.origin, row.username, row.password);
   }
 
-  private static insertQuery = db.prepare(
-    `INSERT INTO auth (origin, username, password) VALUES (?, ?, ?);`
+  private static setQuery = db.prepare(
+    `INSERT INTO auth (origin, username, password) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET origin = excluded.origin, username = excluded.username, password = excluded.password`
   );
-  public static insert(
-    origin: string,
-    username: string,
-    password: string
-  ): void {
-    this.insertQuery.run(origin, username, password);
+  public static set(origin: string, username: string, password: string): void {
+    this.setQuery.run(origin, username, password);
   }
 
   public static async initFromEnv() {
@@ -44,7 +40,7 @@ export class DbAuth {
       return;
     }
     // Insert new auth
-    DbAuth.insert(origin, username, password);
+    DbAuth.set(origin, username, password);
     console.log("Auth initialized with provided environment variables.");
   }
 }

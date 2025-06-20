@@ -1,3 +1,4 @@
+import { DbAuth } from "../lib/database/Auth";
 import { DbRetroArchRom } from "../lib/database/RetroArchRom";
 import { getAllRoms } from "../lib/interface";
 import type { Rom } from "../lib/Rom";
@@ -84,6 +85,46 @@ export const IpcServer = {
 
   async log(arg: { message: string }): Promise<void> {
     console.log(`[IPC LOG] ${arg.message}`);
+  },
+
+  async getSettings(): Promise<{
+    settings: {
+      username: string;
+      passwordSet: boolean;
+      origin: string;
+    } | null;
+  }> {
+    const auth = await DbAuth.get();
+    if (!auth) {
+      return { settings: null };
+    }
+    return {
+      settings: {
+        username: auth.username,
+        passwordSet: auth.password !== null,
+        origin: auth.origin,
+      },
+    };
+  },
+
+  async setSettings(arg: {
+    username: string;
+    password: string | null;
+    origin: string;
+  }): Promise<void> {
+    const auth = await DbAuth.get();
+    if (!auth) {
+      if (!arg.username || !arg.password || !arg.origin) {
+        throw new Error("Username, password, and origin must be provided.");
+      }
+      DbAuth.set(arg.username, arg.password, arg.origin);
+    } else {
+      DbAuth.set(
+        arg.username,
+        arg.password || auth.password, // Keep existing password if null or empty
+        arg.origin
+      );
+    }
   },
 } satisfies Record<
   (typeof ipcActions)[number],
