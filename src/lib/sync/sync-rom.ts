@@ -1,22 +1,16 @@
 import { file, SHA1 } from "bun";
 import { join } from "path";
 import { retroArchPaths } from "../retroarch/paths";
-import { RetroArchRomFile } from "../retroarch/RetroArch";
 import type { Rom } from "../Rom";
 import { RommApiClient } from "../romm/RomM";
 
 export async function doSync(rom: Rom) {
   if (rom.retroarchRom) {
     if (!rom.retroarchRom.rommFileId) {
+      console.log(
+        `ROM ${rom.rommRom.slug} (${rom.rommRom.id}) is not set for syncing.`
+      );
       return;
-    }
-
-    if (rom.retroarchRom.retroarchPath) {
-      // If the rom has a retroarch path, it is probably already synced, but let's make sure
-      const romFile = new RetroArchRomFile(rom.retroarchRom);
-      if (await romFile.exists()) {
-        return;
-      }
     }
 
     const romFile = rom.rommRom.files.find(
@@ -24,6 +18,9 @@ export async function doSync(rom: Rom) {
     );
 
     if (!romFile) {
+      console.log(
+        `ROM file with ID ${rom.retroarchRom.rommFileId} not found for ROM ${rom.rommRom.slug} (${rom.rommRom.id}).`
+      );
       return;
     }
 
@@ -55,5 +52,9 @@ export async function doSync(rom: Rom) {
       }
     }
     await targetFile.write(rommFile.data);
+  } else {
+    console.log(
+      `ROM ${rom.rommRom.slug} (${rom.rommRom.id}) does not have a RetroArch ROM entry, skipping sync.`
+    );
   }
 }

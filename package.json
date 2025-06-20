@@ -17,6 +17,7 @@
     "@mui/lab": "^7.0.0-beta.14",
     "@mui/material": "^7.1.2",
     "@tajetaje/romm-api": "latest",
+    "@toolpad/core": "^0.16.0",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.5.2",
@@ -30,7 +31,8 @@
     "webview-bun": "github:jthoward64/webview-bun"
   },
   "scripts": {
-    "build": "vite build",
-    "start": "bun run build && bun src/index.ts"
+    "build": "vite build && bun build ./src/index.ts --compile --minify --outfile=./build/romm-sync --production",
+    "start": "bun src/index.ts",
+    "start:ui": "bun vite"
   }
 }

@@ -38,6 +38,9 @@ export const IpcServer = {
     if (!newRom) {
       throw new Error(`ROM with ID ${arg.id} not found after update.`);
     }
+
+    await syncJob.trigger();
+
     return { rom: newRom };
   },
 
@@ -73,6 +76,8 @@ export const IpcServer = {
     rom.targetCoreId = arg.coreId;
 
     rom.update();
+
+    await syncJob.trigger();
 
     return { rom };
   },

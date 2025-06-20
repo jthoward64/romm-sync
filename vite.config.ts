@@ -2,8 +2,8 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { viteSingleFile } from "vite-plugin-singlefile";
 
-export default defineConfig({
-  plugins: [react(), viteSingleFile()],
+export default defineConfig(({ command }) => ({
+  plugins: [react(), command == "build" && viteSingleFile()],
   root: "src/ui",
   build: {
     target: "esnext",
@@ -17,4 +17,9 @@ export default defineConfig({
       ],
     },
   },
-});
+  server: {
+    watch: {
+      usePolling: true,
+    },
+  },
+}));

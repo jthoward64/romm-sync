@@ -19,13 +19,13 @@
     };
     console.log("Webview console initialized");
     addEventListener("DOMContentLoaded", () => {
-      sendEvent("log", { message: "DOM fully loaded and parsed" });
+      console.log("DOM fully loaded and parsed");
     });
     addEventListener("error", (event) => {
-      sendEvent("log", { message: "ERROR: " + event.message });
+      console.error(event.message);
     });
     addEventListener("unhandledrejection", (event) => {
-      sendEvent("log", { message: "UNHANDLED REJECTION: " + event.reason });
+      console.error("UNHANDLED REJECTION: " + event.reason);
     });
   </script>
 </head>

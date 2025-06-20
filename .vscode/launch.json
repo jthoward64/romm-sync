@@ -13,7 +13,9 @@
       "cwd": "${workspaceFolder}",
       "stopOnEntry": false,
       "watchMode": false,
-      "preLaunchTask": "bun: build"
+      "env": {
+        "NODE_ENV": "development"
+      }
     },
     {
       "type": "bun",
@@ -24,7 +26,9 @@
       "cwd": "${workspaceFolder}",
       "noDebug": true,
       "watchMode": false,
-      "preLaunchTask": "bun: build"
+      "env": {
+        "NODE_ENV": "development"
+      }
     },
     {
       "type": "bun",
