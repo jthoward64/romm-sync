@@ -8,7 +8,6 @@ await import("./lib/init");
 const webview = new Webview();
 
 webview.setHTML(await file(html).text());
-webview.run();
 
 webview.bind("postMessage", async (event:string, payload: Record<string, unknown>): Promise<Record<string, unknown>> => {
   const result: Record<string,unknown> = {ok:true};
@@ -38,3 +37,5 @@ declare global {
     payload: P
   ) => Promise<R>;
 }
+
+webview.run();

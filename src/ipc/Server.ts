@@ -1,18 +1,31 @@
+import { DbRetroArchRom } from "../lib/database/RetroArchRom";
 import { getRetroarchRoms } from "../lib/retroarch/interface";
 import type { RetroArchRom } from "../lib/retroarch/RetroArch";
-import type { IpcAction } from "./actions";
 
-type IpcServerType = {
-  [Action in IpcAction]: (arg?: unknown) => Promise<unknown>;
+export const IpcServer = {
+  async getDbRoms(): Promise<RetroArchRom[]> {
+    return getRetroarchRoms();
+  },
+
+  async setSync(arg: { id: number; enabled: boolean }): Promise<void> {
+    const rom = await DbRetroArchRom.get(arg.id);
+    if (!rom) {
+      throw new Error(`RetroArchRom with id ${arg.id} not found`);
+    }
+    rom.syncing = arg.enabled;
+    rom.update();
+  },
 };
 
-export class IpcServer implements IpcServerType {
-  getDbRoms(): Promise<RetroArchRom[]> {
-    return getRetroarchRoms();
-  }
-}
+export type IpcResponse<T> =
+  | (T & { ok: true })
+  | { ok: false; error: { message: string } };
+
+export type IpcAction = keyof typeof IpcServer;
 
 export type IpcArgument<Action extends IpcAction> = Parameters<
-  IpcServer[Action]
+  (typeof IpcServer)[Action]
 >[0];
-export type IpcResult<Action extends IpcAction> = ReturnType<IpcServer[Action]>;
+export type IpcResult<Action extends IpcAction> = Awaited<
+  ReturnType<(typeof IpcServer)[Action]>
+>;

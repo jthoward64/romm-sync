@@ -1,5 +1,9 @@
-import { IpcActions, type IpcAction } from "./actions";
-import type { IpcArgument, IpcResult } from "./Server";
+import {
+  IpcServer,
+  type IpcAction,
+  type IpcArgument,
+  type IpcResult,
+} from "./Server";
 
 export type IpcClientType = {
   [Action in IpcAction]: IpcArgument<Action> extends undefined
@@ -9,7 +13,8 @@ export type IpcClientType = {
 
 function makeIpcClient(): IpcClientType {
   const client = {} as IpcClientType;
-  for (const action of Object.values(IpcActions)) {
+  for (const action of Object.keys(IpcServer) as IpcAction[]) {
+    // @ts-ignore
     client[action] = (arg) => sendEvent(action, arg);
   }
   return client;
