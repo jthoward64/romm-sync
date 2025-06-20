@@ -1,20 +1,37 @@
 import { DbRetroArchRom } from "../lib/database/RetroArchRom";
-import { getRetroarchRoms } from "../lib/retroarch/interface";
-import type { RetroArchRom } from "../lib/retroarch/RetroArch";
+import { getAllRoms } from "../lib/interface";
+import type { Rom } from "../lib/Rom";
 import type { ipcActions } from "./actions";
 
 export const IpcServer = {
-  async getDbRoms(): Promise<RetroArchRom[]> {
-    return getRetroarchRoms();
+  async getDbRoms(): Promise<{ roms: Rom[] }> {
+    return { roms: await getAllRoms() };
   },
 
-  async setSync(arg: { id: number; enabled: boolean }): Promise<void> {
-    const rom = await DbRetroArchRom.get(arg.id);
+  async setSync(arg: {
+    id: number;
+    enabled: boolean;
+  }): Promise<{ rom: DbRetroArchRom }> {
+    const rom = await DbRetroArchRom.getByRommRomId(arg.id);
     if (!rom) {
-      throw new Error(`RetroArchRom with id ${arg.id} not found`);
+      console.log(`No ROM found with ID ${arg.id}. Creating a new entry.`);
+      DbRetroArchRom.insert(
+        arg.enabled,
+        arg.id,
+        null // No retroarch path set yet
+      );
+    } else {
+      console.log(
+        `Updating ROM with ID ${arg.id} to set syncing to ${arg.enabled}.`
+      );
+      rom.syncing = arg.enabled;
+      rom.update();
     }
-    rom.syncing = arg.enabled;
-    rom.update();
+    const newRom = await DbRetroArchRom.getByRommRomId(arg.id);
+    if (!newRom) {
+      throw new Error(`ROM with ID ${arg.id} not found after update.`);
+    }
+    return { rom: newRom };
   },
 
   async log(arg: { message: string }): Promise<void> {

@@ -1,6 +1,6 @@
 import { Database } from "bun:sqlite";
 
-export const db = new Database(":memory:", {
+export const db = new Database("./database.db", {
   create: true,
   readwrite: true,
   strict: true,
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS retroarch_rom (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   retroarch_path TEXT UNIQUE,
   syncing INTEGER NOT NULL DEFAULT 0,
-  romm_rom_id INTEGER NOT NULL
+  romm_rom_id INTEGER NOT NULL UNIQUE
 );
 `;
 

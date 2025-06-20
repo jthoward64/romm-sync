@@ -1,10 +1,10 @@
 import { ipcActions } from "./actions";
-import type { IpcAction, IpcArgument, IpcResult } from "./Server";
+import type { IpcAction, IpcArgument, IpcResponse, IpcResult } from "./Server";
 
 export type IpcClientType = {
   [Action in IpcAction]: IpcArgument<Action> extends undefined
-    ? (arg?: IpcArgument<Action>) => Promise<IpcResult<Action>>
-    : (arg: IpcArgument<Action>) => Promise<IpcResult<Action>>;
+    ? (arg?: IpcArgument<Action>) => Promise<IpcResponse<IpcResult<Action>>>
+    : (arg: IpcArgument<Action>) => Promise<IpcResponse<IpcResult<Action>>>;
 };
 
 function makeIpcClient(): IpcClientType {

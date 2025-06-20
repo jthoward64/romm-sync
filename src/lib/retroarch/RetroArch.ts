@@ -1,5 +1,4 @@
 import { Temporal } from "@js-temporal/polyfill";
-import type { SimpleRomSchema } from "@tajetaje/romm-api";
 import { stat } from "node:fs/promises";
 import type { DbRetroArchRom } from "../database/RetroArchRom";
 import type { LibRetroInfo } from "./libretro-info/LibretroInfo";
@@ -42,10 +41,7 @@ export class RetroArchState extends RetroArchFile {
 }
 
 export class RetroArchRom extends RetroArchFile {
-  constructor(
-    public readonly retroarch: DbRetroArchRom,
-    public readonly romm: SimpleRomSchema
-  ) {
+  constructor(public readonly retroarch: DbRetroArchRom) {
     super(retroarch.retroarchPath!);
 
     if (!retroarch.retroarchPath) {

@@ -34,9 +34,17 @@ for (const rom of roms) {
     rom.files.some((remoteFile) => remoteFile.fileName === downloadedFile)
   );
 
-  DbRetroArchRom.insert(
-    false,
-    rom.id,
-    (match && join(retroArchPaths.downloads, match)) || null
-  );
+  const existingRom = await DbRetroArchRom.getByRommRomId(rom.id);
+
+  if (existingRom) {
+    existingRom.retroarchPath =
+      (match && join(retroArchPaths.downloads, match)) || null;
+    existingRom.update();
+  } else {
+    DbRetroArchRom.insert(
+      false,
+      rom.id,
+      (match && join(retroArchPaths.downloads, match)) || null
+    );
+  }
 }

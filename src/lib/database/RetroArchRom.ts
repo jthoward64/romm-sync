@@ -53,6 +53,22 @@ export class DbRetroArchRom {
     );
   }
 
+  private static getByRommRomIdQuery = db.prepare(
+    `SELECT * FROM retroarch_rom WHERE romm_rom_id = ?`
+  );
+  public static async getByRommRomId(
+    rommRomId: number
+  ): Promise<DbRetroArchRom | null> {
+    const row = this.getByRommRomIdQuery.get(rommRomId) as any;
+    if (!row) return null;
+    return new DbRetroArchRom(
+      row.id,
+      row.retroarch_path,
+      Boolean(row.syncing),
+      row.romm_rom_id
+    );
+  }
+
   private static allQuery = db.prepare(`SELECT * FROM retroarch_rom`);
   public static async all(): Promise<DbRetroArchRom[]> {
     const rows = this.allQuery.all() as any[];

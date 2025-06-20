@@ -5,10 +5,10 @@ import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
 import { useEffect, useState } from "react";
 import { IpcClient } from "../../ipc/Client";
-import type { RetroArchRom } from "../../lib/retroarch/RetroArch";
+import type { Rom } from "../../lib/Rom";
 
 export function Roms() {
-  const [roms, setRoms] = useState<RetroArchRom[]>([]);
+  const [roms, setRoms] = useState<Rom[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,7 +16,11 @@ export function Roms() {
     async function fetchRoms() {
       try {
         const fetchedRoms = await IpcClient.getDbRoms();
-        setRoms(fetchedRoms);
+        if (fetchedRoms.ok) {
+          setRoms(fetchedRoms.roms);
+        } else {
+          setError(`Error fetching ROMs: ${fetchedRoms.error.message}`);
+        }
       } catch (err) {
         setError(`Failed to load ROMs: ${err instanceof Error ? err.message : 'Unknown error'}`);
       } finally {
@@ -49,14 +53,19 @@ export function Roms() {
         Available ROMs
       </Typography>
       {roms.map((rom) => (
-        <ListItem key={rom.retroarch.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="body1">{rom.romm.name}</Typography>
+        <ListItem key={rom.rommRom.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="body1">{rom.rommRom.name}</Typography>
           <Switch
-            checked={rom.retroarch.syncing}
+            checked={rom.retroarchRom?.syncing ?? false}
             onChange={async (event) => {
-              await IpcClient.setSync({ id: rom.retroarch.id, enabled: event.target.checked });
-              rom.retroarch.syncing = event.target.checked;
-              setRoms([...roms]); // Trigger re-render
+              const newRom = await IpcClient.setSync({ id: rom.rommRom.id, enabled: event.target.checked });
+              if (newRom.ok) {
+                console.log(`Sync status updated for ROM: ${rom.rommRom.name}`, JSON.stringify(newRom.rom));
+                rom.retroarchRom = newRom.rom;
+                setRoms((prevRoms) => [...prevRoms]);
+              } else {
+                setError(`Failed to update sync status: ${newRom.error.message}`);
+              }
             }}
             color="primary"
           />
