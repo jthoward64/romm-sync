@@ -1,6 +1,6 @@
 import { Temporal } from "@js-temporal/polyfill";
+import type { RetroarchRom } from "@prisma/client";
 import { stat } from "node:fs/promises";
-import type { DbRetroArchRom } from "../database/RetroArchRom";
 import type { LibRetroInfo } from "./libretro-info/LibretroInfo";
 import type { CorePaths } from "./paths";
 
@@ -53,7 +53,7 @@ export class RetroArchStateFile extends RetroArchFile {
 }
 
 export class RetroArchRomFile extends RetroArchFile {
-  constructor(retroarch: DbRetroArchRom) {
+  constructor(retroarch: RetroarchRom) {
     super(retroarch.retroarchPath!);
 
     if (!retroarch.retroarchPath) {

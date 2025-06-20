@@ -1,3 +1,4 @@
+import type { Auth } from "@prisma/client";
 import {
   AuthApi,
   CollectionsApi,
@@ -19,7 +20,6 @@ import {
   UsersApi,
   type SimpleRomSchema,
 } from "@tajetaje/romm-api";
-import type { DbAuth } from "../database/Auth";
 
 export class RommApiClient {
   readonly authApi: AuthApi;
@@ -39,7 +39,7 @@ export class RommApiClient {
   readonly collectionsApi: CollectionsApi;
   readonly screenshotsApi: ScreenshotsApi;
 
-  constructor(auth: DbAuth) {
+  constructor(auth: Auth) {
     const configuration = createConfiguration({
       authMethods: {
         HTTPBasic: {
@@ -80,7 +80,7 @@ export class RommApiClient {
     return RommApiClient.#instance;
   }
 
-  public static init(auth: DbAuth): RommApiClient {
+  public static init(auth: Auth): RommApiClient {
     if (RommApiClient.#instance) {
       throw new Error("RommApiClient is already initialized.");
     }

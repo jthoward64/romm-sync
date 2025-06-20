@@ -1,5 +1,5 @@
 import type { SimpleRomSchema } from "@tajetaje/romm-api";
-import { DbRetroArchRom } from "./database/RetroArchRom";
+import { db } from "./database/db";
 import { Rom } from "./Rom";
 import { RommApiClient } from "./romm/RomM";
 
@@ -8,7 +8,7 @@ export async function getAllRoms({
 }: {
   onlySyncing?: boolean;
 } = {}) {
-  const retroarchRoms = await DbRetroArchRom.all();
+  const retroarchRoms = await db.retroarchRom.findMany();
   let rommRoms: SimpleRomSchema[];
   if (!onlySyncing) {
     rommRoms = await RommApiClient.instance.loadAllRoms();
