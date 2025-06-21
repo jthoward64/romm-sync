@@ -2,12 +2,16 @@ import {
   AuthApi,
   CollectionsApi,
   ConfigApi,
+  type Configuration,
   createConfiguration,
   FeedsApi,
   FirmwareApi,
+  type HttpMethod,
   PlatformsApi,
   RawApi,
+  type RequestBody,
   RequestContext,
+  type ResponseContext,
   RomsApi,
   SavesApi,
   ScreenshotsApi,
@@ -39,8 +43,10 @@ export class RommApiClient {
   readonly collectionsApi: CollectionsApi;
   readonly screenshotsApi: ScreenshotsApi;
 
+  private readonly configuration: Configuration;
+
   constructor(auth: Omit<typeof authSchema.$inferSelect, "id">) {
-    const configuration = createConfiguration({
+    this.configuration = createConfiguration({
       authMethods: {
         HTTPBasic: {
           username: auth.username,
@@ -54,22 +60,22 @@ export class RommApiClient {
       },
     });
 
-    this.authApi = new AuthApi(configuration);
-    this.rawApi = new RawApi(configuration);
-    this.romsApi = new RomsApi(configuration);
-    this.feedsApi = new FeedsApi(configuration);
-    this.savesApi = new SavesApi(configuration);
-    this.statsApi = new StatsApi(configuration);
-    this.tasksApi = new TasksApi(configuration);
-    this.usersApi = new UsersApi(configuration);
-    this.configApi = new ConfigApi(configuration);
-    this.searchApi = new SearchApi(configuration);
-    this.statesApi = new StatesApi(configuration);
-    this.systemApi = new SystemApi(configuration);
-    this.firmwareApi = new FirmwareApi(configuration);
-    this.platformsApi = new PlatformsApi(configuration);
-    this.collectionsApi = new CollectionsApi(configuration);
-    this.screenshotsApi = new ScreenshotsApi(configuration);
+    this.authApi = new AuthApi(this.configuration);
+    this.rawApi = new RawApi(this.configuration);
+    this.romsApi = new RomsApi(this.configuration);
+    this.feedsApi = new FeedsApi(this.configuration);
+    this.savesApi = new SavesApi(this.configuration);
+    this.statsApi = new StatsApi(this.configuration);
+    this.tasksApi = new TasksApi(this.configuration);
+    this.usersApi = new UsersApi(this.configuration);
+    this.configApi = new ConfigApi(this.configuration);
+    this.searchApi = new SearchApi(this.configuration);
+    this.statesApi = new StatesApi(this.configuration);
+    this.systemApi = new SystemApi(this.configuration);
+    this.firmwareApi = new FirmwareApi(this.configuration);
+    this.platformsApi = new PlatformsApi(this.configuration);
+    this.collectionsApi = new CollectionsApi(this.configuration);
+    this.screenshotsApi = new ScreenshotsApi(this.configuration);
   }
 
   static #instance: RommApiClient | null = null;
@@ -105,5 +111,37 @@ export class RommApiClient {
       offset += response.items.length;
     }
     return allRoms;
+  }
+
+  async makeRequest(
+    method: HttpMethod,
+    path: string | URL,
+    body?: { payload: RequestBody; mediaType?: string },
+  ): Promise<ResponseContext> {
+    const requestContext = this.configuration.baseServer.makeRequestContext(
+      typeof path === "string" ? path : path.pathname,
+      method,
+    );
+
+    this.configuration.authMethods.HTTPBasic?.applySecurityAuthentication(
+      requestContext,
+    );
+
+    if (body) {
+      requestContext.setBody(body.payload);
+      if (body.mediaType) {
+        requestContext.setHeaderParam("Content-Type", body.mediaType);
+      }
+    }
+
+    const response = await this.configuration.httpApi
+      .send(requestContext)
+      .toPromise();
+    if (response.httpStatusCode < 200 || response.httpStatusCode >= 300) {
+      throw new Error(
+        `Request failed with status code ${response.httpStatusCode}: ${await response.body.text()}`,
+      );
+    }
+    return response;
   }
 }
