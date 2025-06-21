@@ -4,8 +4,10 @@ node_modules
 # output
 out
 dist
-build
 *.tgz
+
+/build/*
+!/build/drizzle.zip
 
 # code coverage
 coverage
