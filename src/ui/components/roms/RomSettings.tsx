@@ -43,7 +43,9 @@ export function RomSettings({
             width: "100%",
           }}
         >
-          <Typography variant="body1">{rom.rommRom.name}</Typography>
+          <Typography variant="body1">
+            {rom.rommRom.name} ({rom.rommRom.platformDisplayName})
+          </Typography>
           <Switch
             checked={rom.retroarchRom?.syncing ?? false}
             disabled={loading}

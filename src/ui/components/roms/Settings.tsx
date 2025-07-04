@@ -49,27 +49,36 @@ export function Settings({ onUpdated }: { onUpdated?: () => void }) {
             password:
               password === SECRET_PASSWORD || password === "" ? null : password,
             origin,
-          }).then((result) => {
-            if (result.ok) {
-              show("Settings saved successfully!", { severity: "success" });
-              onUpdated?.();
-            } else {
-              show(`Error saving settings: ${result.error.message}`, {
-                severity: "error",
-              });
-            }
-          }).catch((error) => {
-            show(`Error saving settings: ${error instanceof Error ? error.message : "Unknown error"}`, {
-              severity: "error",
+          })
+            .then((result) => {
+              if (result.ok) {
+                show("Settings saved successfully!", { severity: "success" });
+                onUpdated?.();
+              } else {
+                show(`Error saving settings: ${result.error.message}`, {
+                  severity: "error",
+                });
+              }
+            })
+            .catch((error) => {
+              show(
+                `Error saving settings: ${error instanceof Error ? error.message : "Unknown error"}`,
+                {
+                  severity: "error",
+                },
+              );
+            })
+            .finally(() => {
+              setLoading(false);
             });
-          }).finally(() => {
-            setLoading(false);
-          });
         } catch (error) {
-            show(`Error saving settings: ${error instanceof Error ? error.message : "Unknown error"}`, {
+          show(
+            `Error saving settings: ${error instanceof Error ? error.message : "Unknown error"}`,
+            {
               severity: "error",
-            });
-            setLoading(false);
+            },
+          );
+          setLoading(false);
         }
       }}
     >

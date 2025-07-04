@@ -114,9 +114,7 @@ export const IpcServer = {
       origin: string;
     } | null;
   }> {
-    const auth = await db.query.authSchema.findFirst({
-      where: (table, { eq }) => eq(table.origin, "default"),
-    });
+    const auth = await db.query.authSchema.findFirst();
     if (!auth) {
       return { settings: null };
     }
@@ -127,6 +125,48 @@ export const IpcServer = {
         origin: auth.origin,
       },
     };
+  },
+
+  async testSettings({
+    username,
+    newPassword,
+    origin,
+  }: {
+    username: string;
+    newPassword: string | null;
+    origin: string;
+  }): Promise<{
+    ok: boolean;
+    error?: { message: string };
+  }> {
+    try {
+      const auth = await db.query.authSchema.findFirst({
+        where: (table, { eq }) => eq(table.origin, origin),
+      });
+      if (!auth) {
+        throw new Error("No settings found for the specified origin.");
+      }
+      RommApiClient.init({
+        username,
+        password: newPassword ?? auth.password,
+        origin,
+      });
+
+      await RommApiClient.instance.usersApi.getCurrentUserApiUsersMeGet();
+      RommApiClient.init(auth);
+
+      return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        error: {
+          message:
+            error instanceof Error
+              ? error.message
+              : `Unknown error: ${String(error)}`,
+        },
+      };
+    }
   },
 
   async setSettings(arg: {

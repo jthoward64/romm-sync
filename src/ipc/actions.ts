@@ -7,4 +7,5 @@ export const ipcActions = [
   "getSettings",
   "setSettings",
   "getStatus",
+  "testSettings",
 ] as const;
