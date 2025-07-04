@@ -38,7 +38,7 @@
   },
   "scripts": {
     "build": "bash ./build.sh",
-    "start": "bun src/index.ts",
+    "start": "WEBKIT_DISABLE_DMABUF_RENDERER=1 bun src/index.ts",
     "start:ui": "bun vite"
   }
 }

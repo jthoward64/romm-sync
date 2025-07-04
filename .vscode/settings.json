@@ -15,8 +15,11 @@
     "source.fixAll.eslint": "never",
     "source.organizeImports": "never"
   },
-  "cSpell.words": ["libretro", "retroarch", "romm"],
-  "bun.runtime": "/var/home/tagho/.local/share/npm/bin/bun",
+  "cSpell.words": [
+    "libretro",
+    "retroarch",
+    "romm"
+  ],
   "[typescript]": {
     "editor.defaultFormatter": "biomejs.biome"
   },

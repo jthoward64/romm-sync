@@ -14,7 +14,8 @@
       "stopOnEntry": false,
       "watchMode": false,
       "env": {
-        "NODE_ENV": "development"
+        "NODE_ENV": "development",
+        "WEBKIT_DISABLE_DMABUF_RENDERER":"1"
       }
     },
     {
@@ -27,7 +28,8 @@
       "noDebug": true,
       "watchMode": false,
       "env": {
-        "NODE_ENV": "development"
+        "NODE_ENV": "development",
+        "WEBKIT_DISABLE_DMABUF_RENDERER":"1"
       }
     },
     {

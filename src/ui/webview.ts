@@ -12,7 +12,7 @@ import html from "./dist/index.html" with { type: "file" };
 const webview = new Webview();
 
 if (process.env.NODE_ENV === "development") {
-  webview.navigate("http://localhost:5174/");
+  webview.navigate("http://localhost:5173/");
 } else {
   webview.setHTML(await file(html).text());
 }

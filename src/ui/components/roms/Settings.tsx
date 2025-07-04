@@ -22,7 +22,6 @@ export function Settings({ onUpdated }: { onUpdated?: () => void }) {
       const settings = await IpcClient.getSettings();
       if (settings.ok) {
         setInitialSettings(settings.settings);
-        console.log(JSON.stringify(settings));
       } else {
         show(`Error fetching settings: ${settings.error.message}`, {
           severity: "error",
@@ -33,34 +32,45 @@ export function Settings({ onUpdated }: { onUpdated?: () => void }) {
     void fetchSettings();
   }, [show]);
 
+  const [loading, setLoading] = useState(false);
+
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        console.log(
-          JSON.stringify([
-            ...new FormData(e.target as HTMLFormElement).entries(),
-          ]),
-        );
-        const formData = new FormData(e.target as HTMLFormElement);
-        const username = formData.get("username") as string;
-        const password = formData.get("password") as string;
-        const origin = formData.get("origin") as string;
-        IpcClient.setSettings({
-          username,
-          password:
-            password === SECRET_PASSWORD || password === "" ? null : password,
-          origin,
-        }).then((result) => {
-          if (result.ok) {
-            show("Settings saved successfully!", { severity: "success" });
-            onUpdated?.();
-          } else {
-            show(`Error saving settings: ${result.error.message}`, {
+        try {
+          setLoading(true);
+          const formData = new FormData(e.target as HTMLFormElement);
+          const username = formData.get("username") as string;
+          const password = formData.get("password") as string;
+          const origin = formData.get("origin") as string;
+          IpcClient.setSettings({
+            username,
+            password:
+              password === SECRET_PASSWORD || password === "" ? null : password,
+            origin,
+          }).then((result) => {
+            if (result.ok) {
+              show("Settings saved successfully!", { severity: "success" });
+              onUpdated?.();
+            } else {
+              show(`Error saving settings: ${result.error.message}`, {
+                severity: "error",
+              });
+            }
+          }).catch((error) => {
+            show(`Error saving settings: ${error instanceof Error ? error.message : "Unknown error"}`, {
               severity: "error",
             });
-          }
-        });
+          }).finally(() => {
+            setLoading(false);
+          });
+        } catch (error) {
+            show(`Error saving settings: ${error instanceof Error ? error.message : "Unknown error"}`, {
+              severity: "error",
+            });
+            setLoading(false);
+        }
       }}
     >
       <Typography variant="h6" sx={{ mb: 2 }}>
@@ -111,6 +121,8 @@ export function Settings({ onUpdated }: { onUpdated?: () => void }) {
           variant="contained"
           color="primary"
           sx={{ mt: 2 }}
+          loading={loading}
+          disabled={loading}
         >
           Save Settings
         </Button>
