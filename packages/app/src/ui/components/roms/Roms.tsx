@@ -4,7 +4,7 @@ import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
 import { type JSX, useEffect, useMemo, useState } from "react";
 import { IpcClient } from "../../../ipc/Client.js";
-import type { Rom } from "../../../lib/Rom.js";
+import type { Rom } from "../../../app/lib/Rom.js";
 import { RomSettings } from "./RomSettings.jsx";
 
 export function Roms() {

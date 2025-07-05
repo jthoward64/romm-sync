@@ -22,7 +22,7 @@
     "editor.defaultFormatter": "ms-vscode.cpptools"
   },
   "cmake.options.statusBarVisibility": "visible",
-  "cmake.buildDirectory": "${workspaceFolder}/builds/${buildKit}/${buildType}",
+  "cmake.buildDirectory": "${workspaceFolder}/packages/webview/builds/${buildKit}/${buildType}",
   "cmake.useCMakePresets": "never",
   "[ignore]": {
     "editor.defaultFormatter": "foxundermoon.shell-format"

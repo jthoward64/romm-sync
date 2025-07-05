@@ -4,41 +4,5 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-    {
-      "type": "bun",
-      "internalConsoleOptions": "openOnSessionStart",
-      "request": "launch",
-      "name": "Debug",
-      "program": "src/index.ts",
-      "cwd": "${workspaceFolder}",
-      "stopOnEntry": false,
-      "watchMode": false,
-      "env": {
-        "NODE_ENV": "development",
-        "WEBKIT_DISABLE_DMABUF_RENDERER": "1"
-      }
-    },
-    {
-      "type": "bun",
-      "internalConsoleOptions": "openOnSessionStart",
-      "request": "launch",
-      "name": "Run",
-      "program": "src/index.ts",
-      "cwd": "${workspaceFolder}",
-      "noDebug": true,
-      "watchMode": false,
-      "env": {
-        "NODE_ENV": "development",
-        "WEBKIT_DISABLE_DMABUF_RENDERER": "1"
-      }
-    },
-    {
-      "type": "bun",
-      "internalConsoleOptions": "openOnSessionStart",
-      "request": "attach",
-      "name": "Attach",
-      "url": "ws://localhost:6499/",
-      "stopOnEntry": false
-    }
   ]
 }

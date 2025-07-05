@@ -13,7 +13,7 @@ import Typography from "@mui/material/Typography";
 import { useNotifications } from "@toolpad/core/useNotifications";
 import { useState } from "react";
 import { IpcClient } from "../../../ipc/Client.js";
-import type { Rom } from "../../../lib/Rom.js";
+import type { Rom } from "../../../app/lib/Rom.js";
 
 export function RomSettings({
   rom,

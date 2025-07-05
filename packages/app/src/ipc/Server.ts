@@ -1,11 +1,11 @@
 import { eq } from "drizzle-orm";
-import { db } from "../lib/database/db.js";
-import { authSchema, retroarchRomSchema } from "../lib/database/schema.js";
-import { loadFromRomm } from "../lib/init.js";
-import { getAllRoms } from "../lib/interface.js";
-import type { Rom } from "../lib/Rom.js";
-import { RommApiClient } from "../lib/romm/RomM.js";
-import { syncJob } from "../lib/sync/sync.js";
+import { db } from "../app/lib/database/db.js";
+import { authSchema, retroarchRomSchema } from "../app/lib/database/schema.js";
+import { loadFromRomm } from "../app/lib/init.js";
+import { getAllRoms } from "../app/lib/interface.js";
+import type { Rom } from "../app/lib/Rom.js";
+import { RommApiClient } from "../app/lib/romm/RomM.js";
+import { syncJob } from "../app/lib/sync/sync.js";
 import type { ipcActions } from "./actions.js";
 
 export const IpcServer = {
