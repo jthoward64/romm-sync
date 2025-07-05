@@ -5,25 +5,26 @@
     "razor": "html",
     "plaintext": "jade"
   },
-  "editor.defaultFormatter": "biomejs.biome",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
-  "editor.codeActionsOnSave": {
-    "source.organizeImports.biome": "explicit",
-    "source.fixAll.biome": "explicit",
-    "source.biome": "explicit",
-    "source.sortImports": "never",
-    "source.fixAll.eslint": "never",
-    "source.organizeImports": "never"
-  },
-  "cSpell.words": [
-    "libretro",
-    "retroarch",
-    "romm"
-  ],
+  "cSpell.words": ["libretro", "retroarch", "romm"],
   "[typescript]": {
-    "editor.defaultFormatter": "biomejs.biome"
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[typescriptreact]": {
-    "editor.defaultFormatter": "biomejs.biome"
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "cmake.sourceDirectory": "/home/tagho/Source/romm-sync/packages/webview",
+  "[cpp]": {
+    "editor.defaultFormatter": "ms-vscode.cpptools"
+  },
+  "cmake.options.statusBarVisibility": "visible",
+  "cmake.buildDirectory": "${workspaceFolder}/builds/${buildKit}/${buildType}",
+  "cmake.useCMakePresets": "never",
+  "[ignore]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
   }
 }
