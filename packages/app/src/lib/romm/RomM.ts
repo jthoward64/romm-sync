@@ -1,3 +1,5 @@
+import "use-server";
+
 import {
   AuthApi,
   CollectionsApi,
@@ -23,7 +25,9 @@ import {
   TasksApi,
   UsersApi,
 } from "@tajetaje/romm-api";
-import type { authSchema } from "../database/schema.js";
+
+import type { authSchema } from "@/lib/database/schema.js";
+import { db } from "@/lib/database/db.js";
 
 export class RommApiClient {
   readonly authApi: AuthApi;
@@ -78,23 +82,12 @@ export class RommApiClient {
     this.screenshotsApi = new ScreenshotsApi(this.configuration);
   }
 
-  static #instance: RommApiClient | null = null;
-  public static get instance(): RommApiClient {
-    if (!RommApiClient.#instance) {
-      throw new Error("RommApiClient is not initialized. Call init first.");
+  public static async getInstance() {
+    const dbAuth = await db.query.authSchema.findFirst();
+    if (!dbAuth) {
+      return null;
     }
-    return RommApiClient.#instance;
-  }
-
-  public static get isInitialized(): boolean {
-    return RommApiClient.#instance !== null;
-  }
-
-  public static init(
-    auth: Omit<typeof authSchema.$inferSelect, "id">
-  ): RommApiClient {
-    RommApiClient.#instance = new RommApiClient(auth);
-    return RommApiClient.#instance;
+    return new RommApiClient(dbAuth);
   }
 
   async loadAllRoms() {

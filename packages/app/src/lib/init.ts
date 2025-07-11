@@ -1,24 +1,19 @@
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { eq } from "drizzle-orm";
-import { db } from "./database/db.js";
-import { retroarchRomSchema } from "./database/schema.js";
-import { getOrCreateCoreFromInfo } from "./database/utils.js";
-import { LibRetroInfo } from "./retroarch/libretro-info/LibretroInfo.js";
-import { retroArchPaths } from "./retroarch/paths.js";
-import { RommApiClient } from "./romm/RomM.js";
-import { syncJob } from "./sync/sync.js";
+import { db } from "@/lib/database/db.js";
+import { retroarchRomSchema } from "@/lib/database/schema.js";
+import { getOrCreateCoreFromInfo } from "@/lib/database/utils.js";
+import { LibRetroInfo } from "@/lib/retroarch/libretro-info/LibretroInfo.js";
+import { retroArchPaths } from "@/lib/retroarch/paths.js";
+import { RommApiClient } from "@/lib/romm/RomM.js";
+import { syncJob } from "@/lib/sync/sync.js";
 
-const dbAuth = await db.query.authSchema.findFirst();
+export async function loadFromRomm(): Promise<boolean> {
+  const instance = await RommApiClient.getInstance();
 
-if (dbAuth) {
-  RommApiClient.init(dbAuth);
-  await loadFromRomm();
-}
-
-export async function loadFromRomm() {
-  if (!RommApiClient.isInitialized) {
-    return;
+  if (!instance) {
+    return false;
   }
 
   console.log("Syncing RomM data");
@@ -26,14 +21,14 @@ export async function loadFromRomm() {
   const infoFiles = await LibRetroInfo.loadAll(retroArchPaths.info);
 
   const platforms =
-    await RommApiClient.instance.platformsApi.getSupportedPlatformsApiPlatformsSupportedGet();
+    await instance.platformsApi.getSupportedPlatformsApiPlatformsSupportedGet();
   for (const info of infoFiles) {
     await getOrCreateCoreFromInfo(info, platforms);
   }
 
   console.log("Loaded platforms from RomM");
 
-  const roms = await RommApiClient.instance.loadAllRoms();
+  const roms = await instance.loadAllRoms();
   if (!roms) {
     throw new Error("Failed to load ROMs from the API.");
   }
@@ -67,7 +62,6 @@ export async function loadFromRomm() {
       });
     }
   }
-  ``;
 
   console.log("Synced roms from RomM");
 
@@ -76,4 +70,6 @@ export async function loadFromRomm() {
     console.log("Sync job not run yet, triggering immediately.");
     await syncJob.trigger();
   }
+
+  return true;
 }

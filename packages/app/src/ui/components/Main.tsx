@@ -6,8 +6,6 @@ import Box from "@mui/material/Box";
 import Tab from "@mui/material/Tab";
 import { NotificationsProvider } from "@toolpad/core/useNotifications";
 import { type SyntheticEvent, useCallback, useEffect, useState } from "react";
-import { IpcClient } from "../../ipc/Client.js";
-import type { IpcResult } from "../../ipc/Server.js";
 import { Roms } from "./roms/Roms.jsx";
 import { Settings } from "./roms/Settings.jsx";
 

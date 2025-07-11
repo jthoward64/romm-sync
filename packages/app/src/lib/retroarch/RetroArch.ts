@@ -1,3 +1,5 @@
+import "use-server";
+
 import { stat } from "node:fs/promises";
 import { Temporal } from "@js-temporal/polyfill";
 import type { retroarchRomSchema } from "../database/schema.js";
@@ -31,7 +33,7 @@ export class RetroArchFile {
       await stat(this.path);
       return true;
     } catch (error) {
-      // biome-ignore lint/suspicious/noExplicitAny: It's fine
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if ((error as any).code === "ENOENT") {
         return false;
       }
@@ -46,7 +48,7 @@ export class RetroArchStateFile extends RetroArchFile {}
 
 export class RetroArchRomFile extends RetroArchFile {
   constructor(retroarch: typeof retroarchRomSchema.$inferSelect) {
-    // biome-ignore lint/style/noNonNullAssertion: Checked below
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     super(retroarch.retroarchPath!);
 
     if (!retroarch.retroarchPath) {

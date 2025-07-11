@@ -1,3 +1,5 @@
+import "use-server";
+
 import { relations } from "drizzle-orm/relations";
 import {
   retroarchCore,

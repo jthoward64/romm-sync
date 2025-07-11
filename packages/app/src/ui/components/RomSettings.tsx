@@ -12,15 +12,15 @@ import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
 import { useNotifications } from "@toolpad/core/useNotifications";
 import { useState } from "react";
-import { IpcClient } from "../../../ipc/Client.js";
-import type { Rom } from "../../../app/lib/Rom.js";
+import type { Rom } from "@/lib/Rom.js";
+import { selectFile, setSync } from "@/lib/actions/funcs";
 
 export function RomSettings({
   rom,
-  updateRom,
+  onChange,
 }: {
   rom: Rom;
-  updateRom: (rom: Rom) => void;
+  onChange?: () => void;
 }) {
   const { show } = useNotifications();
   const [loading, setLoading] = useState(false);
@@ -51,17 +51,12 @@ export function RomSettings({
             disabled={loading}
             onChange={async (event) => {
               async function go() {
-                const newRom = await IpcClient.setSync({
+                const newRom = await setSync({
                   id: rom.rommRom.id,
                   enabled: event.target.checked,
                 });
                 if (newRom.ok) {
-                  console.log(
-                    `Sync status updated for ROM: ${rom.rommRom.name}`,
-                    JSON.stringify(newRom.rom)
-                  );
-                  rom.retroarchRom = newRom.rom;
-                  updateRom(rom);
+                  onChange?.();
                 } else {
                   show(
                     `Failed to update sync status: ${newRom.error.message}`,
@@ -92,7 +87,7 @@ export function RomSettings({
                 disabled={loading}
                 onChange={async (event) => {
                   setLoading(true);
-                  const newRom = await IpcClient.selectFile({
+                  const newRom = await selectFile({
                     romId: rom.rommRom.id,
                     fileId:
                       event.target.value === ""
@@ -103,8 +98,7 @@ export function RomSettings({
                   });
 
                   if (newRom.ok) {
-                    rom.retroarchRom = newRom.rom;
-                    updateRom(rom);
+                    onChange?.();
                   } else {
                     show(`Failed to select file: ${newRom.error.message}`, {
                       severity: "error",

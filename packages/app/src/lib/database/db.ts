@@ -1,12 +1,14 @@
+import "use-server";
+
 import { readFile, rm, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { file, SHA1 } from "bun";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
 import unzipper from "unzipper";
-// @ts-ignore
+// @ts-expect-error File import
 import drizzleZip from "../../../build/drizzle.zip" with { type: "file" };
-import { dbPath, drizzleMigrationsPath, ensureAppDir } from "../../app-dirs";
+import { dbPath, drizzleMigrationsPath, ensureAppDir } from "@/lib/app-dirs.js";
 import * as schema from "./schema";
 
 await ensureAppDir();

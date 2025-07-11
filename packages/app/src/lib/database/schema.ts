@@ -1,3 +1,5 @@
+import "use-server";
+
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const authSchema = sqliteTable("Auth", {

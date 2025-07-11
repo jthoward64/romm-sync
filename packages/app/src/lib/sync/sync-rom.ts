@@ -1,3 +1,5 @@
+import "use-server";
+
 import { join } from "node:path";
 import { HttpMethod } from "@tajetaje/romm-api";
 import { file, SHA1 } from "bun";
@@ -5,7 +7,7 @@ import type { Rom } from "../Rom.js";
 import { retroArchPaths } from "../retroarch/paths.js";
 import { RommApiClient } from "../romm/RomM.js";
 
-export async function doSync(rom: Rom) {
+export async function doSync(rom: Rom, client: RommApiClient) {
   if (rom.retroarchRom) {
     if (!rom.retroarchRom.rommFileId) {
       console.log(
@@ -28,7 +30,7 @@ export async function doSync(rom: Rom) {
     // If the rom does not have a retroarch path, we need to sync it
     // We have to hack around the fact that openapi-generator incorrectly
     // parses the `getRomContentApiRomsIdContentFileNameGet` method
-    const downloadResponse = await RommApiClient.instance.makeRequest(
+    const downloadResponse = await client.makeRequest(
       HttpMethod.GET,
       `/api/roms/${rom.rommRom.id}/content/${encodeURI(romFile.fileName)}`
     );

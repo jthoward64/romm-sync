@@ -1,3 +1,5 @@
+import "use-server";
+
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { type InfoFile, parseInfoFile } from "./InfoFile.js";

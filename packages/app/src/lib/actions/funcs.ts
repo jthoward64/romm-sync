@@ -1,23 +1,17 @@
+"use server";
 import { eq } from "drizzle-orm";
-import { db } from "../app/lib/database/db.js";
-import { authSchema, retroarchRomSchema } from "../app/lib/database/schema.js";
-import { loadFromRomm } from "../app/lib/init.js";
-import { getAllRoms } from "../app/lib/interface.js";
-import type { Rom } from "../app/lib/Rom.js";
-import { RommApiClient } from "../app/lib/romm/RomM.js";
-import { syncJob } from "../app/lib/sync/sync.js";
-import type { ipcActions } from "./actions.js";
+import { db } from "@/lib/database/db.js";
+import { authSchema, retroarchRomSchema } from "@/lib/database/schema.js";
+import { loadFromRomm } from "@/lib/init.js";
+import { RommApiClient } from "@/lib/romm/RomM.js";
+import { syncJob } from "@/lib/sync/sync.js";
+import { safeAction } from "@/lib/actions/safeAction.js";
 
-export const IpcServer = {
-  async getDbRoms(): Promise<{ roms: Rom[] }> {
-    return { roms: await getAllRoms() };
-  },
-
-  async setSync(arg: {
+export const setSync = safeAction(
+  async (arg: {
     id: number;
     enabled: boolean;
-  }): Promise<{ rom: typeof retroarchRomSchema.$inferSelect }> {
-    // const rom = await DbRetroArchRom.getByRommRomId(arg.id);
+  }): Promise<{ rom: typeof retroarchRomSchema.$inferSelect }> => {
     const rom = await db.query.retroarchRomSchema.findFirst({
       where: (table, { eq }) => eq(table.rommRomId, arg.id),
     });
@@ -51,12 +45,14 @@ export const IpcServer = {
     await syncJob.trigger();
 
     return { rom: newRom };
-  },
+  }
+);
 
-  async selectFile(arg: {
+export const selectFile = safeAction(
+  async (arg: {
     romId: number;
     fileId: number | null;
-  }): Promise<{ rom: typeof retroarchRomSchema.$inferSelect }> {
+  }): Promise<{ rom: typeof retroarchRomSchema.$inferSelect }> => {
     const rom = await db
       .update(retroarchRomSchema)
       .set({
@@ -70,12 +66,14 @@ export const IpcServer = {
     }
     await syncJob.trigger();
     return { rom };
-  },
+  }
+);
 
-  async setTargetCore(arg: {
+export const setTargetCore = safeAction(
+  async (arg: {
     romId: number;
     coreId: number | null;
-  }): Promise<{ rom: typeof retroarchRomSchema.$inferSelect }> {
+  }): Promise<{ rom: typeof retroarchRomSchema.$inferSelect }> => {
     const rom = await db
       .update(retroarchRomSchema)
       .set({
@@ -89,31 +87,17 @@ export const IpcServer = {
     }
     await syncJob.trigger();
     return { rom };
-  },
+  }
+);
 
-  async log(arg: { message: string }): Promise<void> {
-    console.log(`[IPC LOG] ${arg.message}`);
-  },
-
-  async getStatus(): Promise<{
-    status: {
-      rommApiReady: boolean;
-    };
-  }> {
-    return {
-      status: {
-        rommApiReady: RommApiClient.isInitialized,
-      },
-    };
-  },
-
-  async getSettings(): Promise<{
+export const getSettings = safeAction(
+  async (): Promise<{
     settings: {
       username: string;
       passwordSet: boolean;
       origin: string;
     } | null;
-  }> {
+  }> => {
     const auth = await db.query.authSchema.findFirst();
     if (!auth) {
       return { settings: null };
@@ -125,55 +109,56 @@ export const IpcServer = {
         origin: auth.origin,
       },
     };
-  },
+  }
+);
 
-  async testSettings({
-    username,
-    newPassword,
-    origin,
-  }: {
-    username: string;
-    newPassword: string | null;
-    origin: string;
-  }): Promise<{
-    ok: boolean;
-    error?: { message: string };
-  }> {
-    try {
-      const auth = await db.query.authSchema.findFirst({
-        where: (table, { eq }) => eq(table.origin, origin),
-      });
-      if (!auth) {
-        throw new Error("No settings found for the specified origin.");
-      }
-      RommApiClient.init({
-        username,
-        password: newPassword ?? auth.password,
-        origin,
-      });
-
-      await RommApiClient.instance.usersApi.getCurrentUserApiUsersMeGet();
-      RommApiClient.init(auth);
-
-      return { ok: true };
-    } catch (error) {
-      return {
-        ok: false,
-        error: {
-          message:
-            error instanceof Error
-              ? error.message
-              : `Unknown error: ${String(error)}`,
-        },
-      };
+export const testSettings = async ({
+  username,
+  newPassword,
+  origin,
+}: {
+  username: string;
+  newPassword: string | null;
+  origin: string;
+}): Promise<{
+  ok: boolean;
+  error?: { message: string };
+}> => {
+  try {
+    const auth = await db.query.authSchema.findFirst({
+      where: (table, { eq }) => eq(table.origin, origin),
+    });
+    if (!auth) {
+      throw new Error("No settings found for the specified origin.");
     }
-  },
 
-  async setSettings(arg: {
+    const client = new RommApiClient({
+      username,
+      password: newPassword ?? auth.password,
+      origin,
+    });
+    await client.usersApi.getCurrentUserApiUsersMeGet();
+
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: {
+        message:
+          error instanceof Error
+            ? error.message
+            : `Unknown error: ${String(error)}`,
+      },
+    };
+  }
+};
+
+export const setSettings = safeAction(
+  async (arg: {
     username: string;
     password: string | null;
     origin: string;
-  }): Promise<void> {
+  }): Promise<void> => {
     const auth = await db.query.authSchema.findFirst({
       where: (table, { eq }) => eq(table.origin, arg.origin),
     });
@@ -196,7 +181,7 @@ export const IpcServer = {
         .update(authSchema)
         .set({
           username: arg.username,
-          password: arg.password || authSchema.password, // Keep existing password if null or empty
+          password: arg.password || authSchema.password,
           origin: arg.origin,
         })
         .returning()
@@ -205,25 +190,7 @@ export const IpcServer = {
     if (!updated) {
       throw new Error("Failed to update settings.");
     } else {
-      RommApiClient.init(updated);
       await loadFromRomm();
     }
-  },
-} satisfies Record<
-  (typeof ipcActions)[number],
-  // biome-ignore lint/suspicious/noExplicitAny: This is a type check
-  (...args: any[]) => Promise<any>
->;
-
-export type IpcResponse<T> =
-  | (T & { ok: true })
-  | { ok: false; error: { message: string } };
-
-export type IpcAction = keyof typeof IpcServer;
-
-export type IpcArgument<Action extends IpcAction> = Parameters<
-  (typeof IpcServer)[Action]
->[0];
-export type IpcResult<Action extends IpcAction> = Awaited<
-  ReturnType<(typeof IpcServer)[Action]>
->;
+  }
+);

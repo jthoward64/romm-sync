@@ -1,3 +1,5 @@
+import "use-server";
+
 import { stat } from "node:fs/promises";
 import type { PlatformSchema } from "@tajetaje/romm-api";
 import type { LibRetroInfo } from "../retroarch/libretro-info/LibretroInfo.js";

@@ -1,7 +1,6 @@
 import { Box, Button, TextField, Typography } from "@mui/material";
 import { useNotifications } from "@toolpad/core/useNotifications";
 import { useEffect, useState } from "react";
-import { IpcClient } from "../../../ipc/Client.js";
 
 const SECRET_PASSWORD = "********";
 
